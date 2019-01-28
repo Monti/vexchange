@@ -90,6 +90,10 @@ class AddLiquidity extends Component {
 
     const exchange = new web3.eth.Contract(EXCHANGE_ABI, exchangeAddress);
     const totalSupply = await exchange.methods.totalSupply().call();
+    const platFormFee = await exchange.methods.platform_fee().call();
+
+    append.platFormFee = platFormFee;
+
     if (!oldTotalSupply.isEqualTo(BN(totalSupply))) {
       append.totalSupply = BN(totalSupply);
     }
@@ -524,10 +528,13 @@ class AddLiquidity extends Component {
       outputValue,
       inputCurrency,
       outputCurrency,
+      platFormFee,
     } = this.state;
 
     const { inputError, outputError, isValid } = this.validate();
     const { label } = selectors().getTokenBalance(outputCurrency, fromToken[outputCurrency]);
+
+    const fee = platFormFee / 100;
 
     return [
       <div
@@ -601,6 +608,11 @@ class AddLiquidity extends Component {
             {t("addLiquidity")}
           </button>
         </div>
+        { platFormFee &&
+          <div className="contextual-info__summary-wrapper">
+            Please note that currently {fee}% of earnings <br /> will be retained by the platform to fund ongoing development
+          </div>
+        }
       </div>
     ];
   }

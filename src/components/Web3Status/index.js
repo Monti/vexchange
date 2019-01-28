@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
@@ -58,7 +58,7 @@ class Web3Status extends Component {
   renderPendingTransactions() {
     return this.props.pending.map((transaction) => {
       return (
-        <Fragment>
+        <>
           <div
             key={transaction}
             className={classnames('pending-modal__transaction-row')}
@@ -71,7 +71,7 @@ class Web3Status extends Component {
               <div className="loader" /> {this.props.t("pending")}
             </div>
           </div>
-        </Fragment>
+        </>
       );
     });
   }
@@ -159,8 +159,6 @@ class Web3Status extends Component {
     );
   }
 }
-
-
 
 function getPendingText(pendingTransactions, pendingLabel) {
   return (

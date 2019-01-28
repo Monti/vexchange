@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { BrowserRouter, Redirect, Route } from 'react-router-dom';
 import MediaQuery from 'react-responsive';
@@ -79,7 +79,7 @@ class App extends Component {
         <Web3Connect />
 
         <BrowserRouter>
-          <Fragment>
+          <>
             <AnimatedSwitch
               atEnter={{ opacity: 0 }}
               atLeave={{ opacity: 0 }}
@@ -96,7 +96,7 @@ class App extends Component {
 
             </AnimatedSwitch>
 
-          </Fragment>
+          </>
         </BrowserRouter>
         <div>
           <Modal

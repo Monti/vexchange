@@ -929,6 +929,9 @@ class Send extends Component {
               {t("send")}
             </button>
           </div>
+          <div className="contextual-info__summary-wrapper">
+            Exchange rate includes a 1% swap fee
+          </div>
         </div>
       </div>
     );
