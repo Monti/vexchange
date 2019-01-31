@@ -295,8 +295,8 @@ class CurrencyInputPanel extends Component {
           const { approve } = contract.methods;
           const fn = approve(fromToken[selectedTokenAddress], amount);
 
-          if (arkaneConnect) {
-            const signer = arkaneConnect.createSigner();
+          if (window.arkaneConnect) {
+            const signer = window.arkaneConnect.createSigner();
       
             signer.executeNativeTransaction({
               type: 'VET_TRANSACTION',

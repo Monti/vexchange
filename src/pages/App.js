@@ -5,8 +5,8 @@ import MediaQuery from 'react-responsive';
 import { AnimatedSwitch } from 'react-router-transition';
 import { Web3Connect, startWatching, initialize } from '../ducks/web3connect';
 import { setAddresses } from '../ducks/addresses';
-import { Modal, Button } from 'antd';
 import Header from '../components/Header';
+import TosModal from '../components/TosModal';
 import Swap from './Swap';
 import Send from './Send';
 import Pool from './Pool';
@@ -17,27 +17,17 @@ import './App.scss';
 class App extends Component {
   constructor(props) {
     super(props);
-
-    this.state = {
-      visible: false,
-    };
-
-    this.handleOk = this.handleOk.bind(this);
-    this.handleCancel = this.handleCancel.bind(this);
   }
 
   componentWillMount() {
-    const { initialize, startWatching } = this.props;
-    const tos = JSON.parse(localStorage.getItem('tos'));
+    const { initialize, startWatching, provider } = this.props;
 
-    if (typeof window.thor !== 'undefined') {
-      initialize().then(startWatching);
-    } else {
-      initialize(true).then(startWatching);
+    if (provider === 'arkane') {
+      initialize('arkane').then(startWatching);
     }
 
-    if (!tos) {
-      this.setState({ visible: true });
+    if (typeof window.thor !== 'undefined' && provider === 'thor') {
+      initialize('thor').then(startWatching);
     }
   }
 
@@ -56,16 +46,12 @@ class App extends Component {
       });
   }
 
-  handleOk() {
-    localStorage.setItem('tos', true);
-    this.setState({ visible: false });
-  }
-
-  handleCancel() {
-    this.setState({ visible: false });
+  componentWillReceiveProps(nextProps) {
+    console.log(nextProps)
   }
 
   render() {
+
     if (!this.props.initialized) {
       return <noscript />;
     }
@@ -99,41 +85,7 @@ class App extends Component {
           </>
         </BrowserRouter>
         <div>
-          <Modal
-            title="Terms of Service"
-            visible={this.state.visible}
-            onOk={this.handleOk}
-            onCancel={this.handleCancel}
-          >
-            <p>
-              The Vexchange contracts and front-end are open source works that are licensed under GNU. This software is provided without any guarantees or liability, the code and licenses can be reviewed <a href="https://github.com/Monti/vexchange" target="_blank" rel="noopener noreferrer">here</a>. The Vexchange site is simply an interface to an exchange running on the VeChain blockchain. We do not endorse any of the tokens and are not licensed to give investment advice. You acknowledge that you use this software at your own risk, both in terms of security and financial loss.
-            </p>
-            <div>
-              <a
-                href="https://github.com/Monti/vexchange-contracts"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Vexchange Contracts Github Repo
-              </a>
-              <br />
-              <a
-                href="https://github.com/Monti/vexchange"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Vexchange Front-End Github Repo
-              </a>
-              <br />
-              <a
-                href="https://github.com/Monti/vexchange/blob/master/FEES.md"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Vexchange Fees
-              </a>
-            </div>
-          </Modal>
+          <TosModal />
         </div>
       </div>
     );
@@ -141,10 +93,11 @@ class App extends Component {
 }
 
 export default connect(
-  state => ({
+  (state, props) => ({
     account: state.web3connect.account,
     initialized: state.web3connect.initialized,
     web3: state.web3connect.web3,
+    provider: props.provider
   }),
   dispatch => ({
     setAddresses: networkId => dispatch(setAddresses(networkId)),

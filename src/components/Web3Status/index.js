@@ -3,9 +3,8 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
 import Web3 from 'web3';
-import Jazzicon from 'jazzicon';
 import { Menu, Dropdown, Icon, Button } from 'antd';
-import { updateWallet } from '../../ducks/web3connect';
+import { updateWallet, startWatching, initialize } from '../../ducks/web3connect';
 import { CSSTransitionGroup } from "react-transition-group";
 import { withNamespaces } from 'react-i18next';
 import { isEqual } from 'lodash';
@@ -27,10 +26,15 @@ class Web3Status extends Component {
       isShowingModal: false,
     };
 
-    this.renderMenu = this.renderMenu.bind(this);
+    this.renderArkaneMenu = this.renderArkaneMenu.bind(this);
+    this.renderCometMenu = this.renderCometMenu.bind(this);
+    this.switchToArkane = this.switchToArkane.bind(this);
+    this.switchToCommet = this.switchToCommet.bind(this);
   }
 
-  componentWillReceiveProps({ wallets }) {
+  componentWillReceiveProps({ wallets, ...rest }) {
+    console.log(rest);
+
     if (!isEqual(this.props.wallets, wallets)) {
       this.setState({ wallets });
     }
@@ -49,6 +53,16 @@ class Web3Status extends Component {
 
   manageWallets = () => {
     window.arkaneConnect.manageWallets('VECHAIN');
+  }
+
+  switchToCommet() {
+    localStorage.setItem('provider', 'thor');
+    window.location.reload();
+  }
+
+  switchToArkane() {
+    localStorage.setItem('provider', 'arkane');
+    window.arkaneConnect.authenticate();
   }
 
   logout = () => {
@@ -76,7 +90,7 @@ class Web3Status extends Component {
     });
   }
 
-  renderMenu() {
+  renderArkaneMenu() {
     const { wallets = [] } = this.props;
     return (
       <Menu>
@@ -89,11 +103,24 @@ class Web3Status extends Component {
         <Menu.Item key="manage" onClick={this.manageWallets}>
           Manage Wallets
         </Menu.Item>
+        <Menu.Item key="manage" onClick={this.switchToCommet}>
+          Switch to Comet
+        </Menu.Item>
         <Menu.Item key="logout" onClick={this.logout}>
           Log out of Arkane
         </Menu.Item>
       </Menu>
     );
+  }
+
+  renderCometMenu() {
+    return (
+      <Menu>
+        <Menu.Item key="manage" onClick={this.switchToArkane}>
+          Switch to Arkane
+        </Menu.Item>
+      </Menu>
+    )
   }
 
   renderModal() {
@@ -132,7 +159,7 @@ class Web3Status extends Component {
     return (
       <Dropdown
         placement="bottomLeft"
-        overlay={(wallets.length > 0) ? this.renderMenu : <div></div>}>
+        overlay={(wallets.length > 0) ? this.renderArkaneMenu : this.renderCometMenu}>
         <Button type={ hasPendingTransactions ? 'primary' : ''}>
           <div className={classnames("web3-status", {
             'web3-status__connected': this.props.isConnected,
@@ -200,5 +227,7 @@ export default connect(
   }),
   dispatch => ({
     updateWallet: wallet => dispatch(updateWallet(wallet)),
+    initialize: (initializeArkane) => dispatch(initialize(initializeArkane)),
+    startWatching: () => dispatch(startWatching()),
   }),
 )(withNamespaces()(Web3Status));

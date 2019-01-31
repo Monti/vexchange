@@ -93,14 +93,16 @@ const Balance = (value, label = '', decimals = 0) => ({
   decimals: +decimals,
 });
 
-export const initialize = (initializeArkane = false) => async (dispatch, getState) => {
+export const initialize = (initializer) => async (dispatch, getState) => {
   const { provider } = getState().web3connect;
 
-  if (initializeArkane || provider === 'arkane') {
+  if (initializer === 'arkane' || provider === 'arkane') {
     return arkane(dispatch, getState)
   }
 
-  return thor(dispatch, getState);
+  if (initializer === 'thor' || provider === 'thor') {
+    return thor(dispatch, getState);
+  }
 };
 
 export const watchBalance = ({ balanceOf, tokenAddress }) => (dispatch, getState) => {
@@ -192,8 +194,6 @@ export const sync = () => async (dispatch, getState) => {
       const wallets = isEmpty(wallet) ?
         await arkaneConnect.api.getWallets() :
         [wallet];
-
-      const walletsMap = convertArrayToMap(wallets, 'id'); 
 
       if (account !== (wallets[0] || {}).address) {
         dispatch({ type: UPDATE_ACCOUNT, payload: wallets[0].address });

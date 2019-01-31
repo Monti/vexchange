@@ -1,9 +1,12 @@
+import * as Arkane from '@arkane-network/arkane-connect';
 import { thorify } from 'thorify'
 import { extend } from 'thorify/dist/extend';
 
 import { INITIALIZE } from './creators'
 
 const Web3 = require("web3");
+
+window.arkaneConnect = new Arkane.ArkaneConnect('Arketype', { environment: 'staging' });
 
 const thor = (dispatch, getState) => {
   const { web3connect } = getState();
@@ -37,7 +40,8 @@ const thor = (dispatch, getState) => {
         return;
       }
     } else {
-      const web3 = thorify(new Web3(), "https://vechain-api.monti.finance");
+      // const web3 = thorify(new Web3(), "https://vechain-api.monti.finance");
+      const web3 = thorify(new Web3(), "http://127.0.0.1:8669/");
       dispatch({
         type: INITIALIZE,
         payload: web3,
