@@ -158,7 +158,7 @@ class AddLiquidity extends Component {
       web3,
       exchangeAddresses: { fromToken },
       selectors,
-      arkaneConnect,
+      provider,
       wallet,
     } = this.props;
     const { inputValue, outputValue, outputCurrency } = this.state;
@@ -186,7 +186,7 @@ class AddLiquidity extends Component {
     const { addLiquidity } = exchange.methods;
     const fn = addLiquidity(minLiquidity.toFixed(0), maxTokens.toFixed(0), deadline);
 
-    if (window.arkaneConnect) {
+    if (provider === 'arkane') {
       const signer = window.arkaneConnect.createSigner();
 
       signer.executeNativeTransaction({
@@ -625,7 +625,7 @@ export default connect(
     balances: state.web3connect.balances,
     web3: state.web3connect.web3,
     exchangeAddresses: state.addresses.exchangeAddresses,
-    arkaneConnect: state.web3connect.arkaneConnect,
+    provider: state.web3connect.provider,
     wallet: state.web3connect.wallet,
   }),
   dispatch => ({

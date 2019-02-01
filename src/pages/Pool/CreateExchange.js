@@ -112,7 +112,7 @@ class CreateExchange extends Component {
 
   onCreateExchange = async () => {
     const { tokenAddress } = this.state;
-    const { account, web3, factoryAddress, wallet, arkaneConnect } = this.props;
+    const { account, web3, factoryAddress, wallet, provider } = this.props;
 
     if (web3 && web3.utils && !web3.utils.isAddress(tokenAddress)) {
       return;
@@ -121,7 +121,7 @@ class CreateExchange extends Component {
     const factory = new web3.eth.Contract(FACTORY_ABI, factoryAddress);
     const fn = factory.methods.createExchange(tokenAddress);
 
-    if (window.arkaneConnect) {
+    if (provider === 'arkane') {
       const signer = window.arkaneConnect.createSigner();
 
       signer.executeNativeTransaction({
@@ -256,6 +256,7 @@ export default withRouter(
       exchangeAddresses: state.addresses.exchangeAddresses,
       factoryAddress: state.addresses.factoryAddress,
       arkaneConnect: state.web3connect.arkaneConnect,
+      provider: state.web3connect.provider,
       wallet: state.web3connect.wallet,
     }),
     dispatch => ({

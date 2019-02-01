@@ -6,10 +6,15 @@ import { INITIALIZE } from './creators'
 
 const Web3 = require("web3");
 
-window.arkaneConnect = new Arkane.ArkaneConnect('Vexchange');
+if (process.env.REACT_APP_NETWORK === 'testnet') {
+  window.arkaneConnect = new Arkane.ArkaneConnect('Arketype', { environment: 'staging' });
+} else {
+  window.arkaneConnect = new Arkane.ArkaneConnect('Vexchange');
+}
 
 const thor = (dispatch, getState) => {
   const { web3connect } = getState();
+  let web3;
 
   return new Promise(async (resolve, reject) => {
     if (web3connect.web3) {
@@ -40,7 +45,13 @@ const thor = (dispatch, getState) => {
         return;
       }
     } else {
-      const web3 = thorify(new Web3(), "https://vechain-api.monti.finance");
+
+      if (process.env.REACT_APP_NETWORK === 'testnet') {
+        web3 = thorify(new Web3(), "http://127.0.0.1:8669/");
+      } else {
+        web3 = thorify(new Web3(), "https://vechain-api.monti.finance");
+      }
+
       dispatch({
         type: INITIALIZE,
         payload: web3,

@@ -46,10 +46,6 @@ class App extends Component {
       });
   }
 
-  componentWillReceiveProps(nextProps) {
-    console.log(nextProps)
-  }
-
   render() {
 
     if (!this.props.initialized) {

@@ -72,9 +72,14 @@ class Send extends Component {
     let inputError = '';
     let outputError = '';
     let isValid = true;
+    let extraFee = false;
     const validRecipientAddress = web3 && web3.utils.isAddress(recipient);
     const inputIsZero = BN(inputValue).isZero();
     const outputIsZero = BN(outputValue).isZero();
+
+    if ((inputCurrency && inputCurrency !== 'VET') && (outputCurrency && outputCurrency !== 'VET')) {
+      extraFee = true;
+    }
 
     if (!inputValue || inputIsZero || !outputValue || outputIsZero || !inputCurrency || !outputCurrency || !recipient || this.isUnapproved() || !validRecipientAddress) {
       isValid = false;
@@ -91,6 +96,7 @@ class Send extends Component {
     }
 
     return {
+      extraFee,
       inputError,
       outputError,
       isValid: isValid && !inputError && !outputError,
@@ -367,7 +373,7 @@ class Send extends Component {
       selectors,
       addPendingTx,
       wallet,
-      arkaneConnect,
+      provider,
     } = this.props;
     const {
       inputValue,
@@ -404,7 +410,7 @@ class Send extends Component {
             recipient,
           );
 
-          if (window.arkaneConnect) {
+          if (provider === 'arkane') {
             const signer = window.arkaneConnect.createSigner();
 
             signer.executeNativeTransaction({
@@ -449,7 +455,7 @@ class Send extends Component {
             recipient,
           );
 
-          if (window.arkaneConnect) {
+          if (provider === 'arkane') {
             const signer = window.arkaneConnect.createSigner();
 
             signer.executeNativeTransaction({
@@ -494,7 +500,7 @@ class Send extends Component {
             outputCurrency,
           );
 
-          if (window.arkaneConnect) {
+          if (provider === 'arkane') {
             const signer = window.arkaneConnect.createSigner();
 
             signer.executeNativeTransaction({
@@ -543,7 +549,7 @@ class Send extends Component {
             recipient,
           );
 
-          if (window.arkaneConnect) {
+          if (provider === 'arkane') {
             const signer = window.arkaneConnect.createSigner();
 
             signer.executeNativeTransaction({
@@ -588,7 +594,7 @@ class Send extends Component {
             recipient,
           );
 
-          if (window.arkaneConnect) {
+          if (provider === 'arkane') {
             const signer = window.arkaneConnect.createSigner();
 
             signer.executeNativeTransaction({
@@ -637,7 +643,7 @@ class Send extends Component {
             outputCurrency,
           );
 
-          if (window.arkaneConnect) {
+          if (provider === 'arkane') {
             const signer = window.arkaneConnect.createSigner();
 
             signer.executeNativeTransaction({
@@ -860,7 +866,13 @@ class Send extends Component {
 
     const { value: inputBalance, decimals: inputDecimals } = selectors().getBalance(account, inputCurrency);
     const { value: outputBalance, decimals: outputDecimals } = selectors().getBalance(account, outputCurrency);
-    const { inputError, outputError, isValid } = this.validate();
+    const { inputError, outputError, isValid, extraFee } = this.validate();
+
+    let fee = '1%';
+
+    if (extraFee) {
+      fee = '2%';
+    }
 
     return (
       <div className="send">
@@ -930,7 +942,7 @@ class Send extends Component {
             </button>
           </div>
           <div className="contextual-info__summary-wrapper">
-            Exchange rate includes a 1% swap fee
+            Exchange rate includes a {fee} swap fee
           </div>
         </div>
       </div>
@@ -945,9 +957,9 @@ export default connect(
     account: state.web3connect.account,
     web3: state.web3connect.web3,
     exchangeAddresses: state.addresses.exchangeAddresses,
-    arkaneConnect: state.web3connect.arkaneConnect,
     web3: state.web3connect.web3,
     wallet: state.web3connect.wallet,
+    provider: state.web3connect.provider,
   }),
   dispatch => ({
     selectors: () => dispatch(selectors()),

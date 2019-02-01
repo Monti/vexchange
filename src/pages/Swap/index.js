@@ -65,9 +65,14 @@ class Swap extends Component {
     let inputError = '';
     let outputError = '';
     let isValid = true;
+    let extraFee = false;
     let isUnapproved = this.isUnapproved();
     const inputIsZero = BN(inputValue).isZero();
     const outputIsZero = BN(outputValue).isZero();
+
+    if ((inputCurrency && inputCurrency !== 'VET') && (outputCurrency && outputCurrency !== 'VET')) {
+      extraFee = true;
+    }
 
     if (!inputValue || inputIsZero || !outputValue || outputIsZero || !inputCurrency || !outputCurrency || isUnapproved) {
       isValid = false;
@@ -84,6 +89,7 @@ class Swap extends Component {
     }
 
     return {
+      extraFee,
       inputError,
       outputError,
       isValid: isValid && !inputError && !outputError,
@@ -360,7 +366,7 @@ class Swap extends Component {
       selectors,
       addPendingTx,
       wallet,
-      arkaneConnect,
+      provider,
     } = this.props;
     const {
       inputValue,
@@ -395,7 +401,7 @@ class Swap extends Component {
             deadline,
           );
 
-          if (window.arkaneConnect) {
+          if (provider === 'arkane') {
             const signer = window.arkaneConnect.createSigner();
 
             signer.executeNativeTransaction({
@@ -439,7 +445,7 @@ class Swap extends Component {
             deadline,
           );
 
-          if (window.arkaneConnect) {
+          if (provider === 'arkane') {
             const signer = window.arkaneConnect.createSigner();
 
             signer.executeNativeTransaction({
@@ -482,8 +488,9 @@ class Swap extends Component {
             deadline,
             outputCurrency,
           );
+          console.log('hit 2')
 
-          if (window.arkaneConnect) {
+          if (provider === 'arkane') {
             const signer = window.arkaneConnect.createSigner();
 
             signer.executeNativeTransaction({
@@ -530,7 +537,7 @@ class Swap extends Component {
             deadline,
           );
 
-          if (window.arkaneConnect) {
+          if (provider == 'arkane') {
             const signer = window.arkaneConnect.createSigner();
 
             signer.executeNativeTransaction({
@@ -574,7 +581,7 @@ class Swap extends Component {
             deadline,
           );
 
-          if (window.arkaneConnect) {
+          if (provider == 'arkane') {
             const signer = window.arkaneConnect.createSigner();
 
             signer.executeNativeTransaction({
@@ -621,8 +628,9 @@ class Swap extends Component {
             deadline,
             outputCurrency,
           );
+          console.log('boom')
 
-          if (window.arkaneConnect) {
+          if (provider === 'arkane') {
             const signer = window.arkaneConnect.createSigner();
 
             signer.executeNativeTransaction({
@@ -727,6 +735,7 @@ class Swap extends Component {
     let minOutput;
     let maxInput;
 
+    console.log(type)
     if (lastEditedField === INPUT) {
       switch(type) {
         case 'ETH_TO_TOKEN':
@@ -736,6 +745,7 @@ class Swap extends Component {
           minOutput = BN(outputValue).multipliedBy(1 - ALLOWED_SLIPPAGE).toFixed(7);
           break;
         case 'TOKEN_TO_TOKEN':
+          console.log('hit')
           minOutput = BN(outputValue).multipliedBy(1 - TOKEN_ALLOWED_SLIPPAGE).toFixed(7);
           break;
         default:
@@ -752,6 +762,7 @@ class Swap extends Component {
           maxInput = BN(inputValue).multipliedBy(1 + ALLOWED_SLIPPAGE).toFixed(7);
           break;
         case 'TOKEN_TO_TOKEN':
+          console.log('hit 2')
           maxInput = BN(inputValue).multipliedBy(1 + TOKEN_ALLOWED_SLIPPAGE).toFixed(7);
           break;
         default:
@@ -836,9 +847,13 @@ class Swap extends Component {
     const { value: inputBalance, decimals: inputDecimals } = selectors().getBalance(account, inputCurrency);
     const { value: outputBalance, decimals: outputDecimals } = selectors().getBalance(account, outputCurrency);
 
-    const { inputError, outputError, isValid } = this.validate();
+    const { inputError, outputError, isValid, extraFee } = this.validate();
 
+    let fee = '1%';
 
+    if (extraFee) {
+      fee = '2%';
+    }
 
     return (
       <div className="swap">
@@ -898,7 +913,7 @@ class Swap extends Component {
             </button>
           </div>
           <div className="contextual-info__summary-wrapper">
-            Exchange rate includes a 1% swap fee
+            Exchange rate includes a {fee} swap fee
           </div>
         </div>
       </div>
@@ -913,7 +928,7 @@ export default connect(
     account: state.web3connect.account,
     exchangeAddresses: state.addresses.exchangeAddresses,
     web3: state.web3connect.web3,
-    arkaneConnect: state.web3connect.arkaneConnect,
+    provider: state.web3connect.provider,
     wallet: state.web3connect.wallet,
   }),
   dispatch => ({
@@ -963,6 +978,7 @@ function getSwapType(inputCurrency, outputCurrency) {
   }
 
   if (inputCurrency !== 'VET' && outputCurrency !== 'VET') {
+    console.log('l')
     return 'TOKEN_TO_TOKEN'
   }
 

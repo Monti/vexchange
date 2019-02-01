@@ -184,13 +184,14 @@ export const sync = () => async (dispatch, getState) => {
     contracts,
     networkId,
     arkaneConnect,
+    provider,
     wallet,
     transactions: { pending, confirmed },
   } = getState().web3connect;
 
   // Sync Account
   try {
-    if (arkaneConnect) {
+    if (provider === 'arkane') {
       const wallets = isEmpty(wallet) ?
         await arkaneConnect.api.getWallets() :
         [wallet];
@@ -547,6 +548,7 @@ export class _Web3Connect extends Component {
 export const Web3Connect = connect(
   ({ web3connect }) => ({
     web3: web3connect.web3,
+    provider: web3connect.provider
   }),
   dispatch => ({
     initialize: () => dispatch(initialize()),

@@ -91,7 +91,7 @@ class RemoveLiquidity extends Component {
       selectors,
       account,
       wallet,
-      arkaneConnect,
+      provider,
     } = this.props;
     const exchangeAddress = fromToken[tokenAddress];
     const { getBalance } = selectors();
@@ -123,7 +123,7 @@ class RemoveLiquidity extends Component {
       deadline,
     );
 
-    if (window.arkaneConnect) {
+    if (provider === 'arkane') {
       const signer = window.arkaneConnect.createSigner();
 
       signer.executeNativeTransaction({
@@ -425,7 +425,7 @@ export default connect(
     account: state.web3connect.account,
     exchangeAddresses: state.addresses.exchangeAddresses,
     wallet: state.web3connect.wallet,
-    arkaneConnect: state.web3connect.arkaneConnect,
+    provider: state.web3connect.provider,
   }),
   dispatch => ({
     selectors: () => dispatch(selectors()),

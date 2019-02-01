@@ -256,7 +256,7 @@ class CurrencyInputPanel extends Component {
       addApprovalTx,
       addPendingTx,
       wallet,
-      arkaneConnect,
+      provider,
     } = this.props;
 
     if (disableUnlock || !selectedTokenAddress || selectedTokenAddress === 'VET') {
@@ -295,7 +295,7 @@ class CurrencyInputPanel extends Component {
           const { approve } = contract.methods;
           const fn = approve(fromToken[selectedTokenAddress], amount);
 
-          if (window.arkaneConnect) {
+          if (provider === 'arkane') {
             const signer = window.arkaneConnect.createSigner();
       
             signer.executeNativeTransaction({
@@ -445,7 +445,7 @@ export default withRouter(
       web3: state.web3connect.web3,
       pendingApprovals: state.pending.approvals,
       wallet: state.web3connect.wallet,
-      arkaneConnect: state.web3connect.arkaneConnect,
+      provider: state.web3connect.provider,
     }),
     dispatch => ({
       selectors: () => dispatch(selectors()),

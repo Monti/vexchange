@@ -33,8 +33,6 @@ class Web3Status extends Component {
   }
 
   componentWillReceiveProps({ wallets, ...rest }) {
-    console.log(rest);
-
     if (!isEqual(this.props.wallets, wallets)) {
       this.setState({ wallets });
     }
