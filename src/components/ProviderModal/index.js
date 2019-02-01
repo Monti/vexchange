@@ -59,11 +59,11 @@ class ProviderModal extends Component {
           footer={null}
         >
           <div className="provider-chooser">
-            <button onClick={this.setComet} className="provider-chooser__button">
-              <img src={CometLogo} />
-            </button>
             <button onClick={this.setArkane} className="provider-chooser__button">
               <img src={AkraneLogo} />
+            </button>
+            <button onClick={this.setComet} className="provider-chooser__button">
+              <img src={CometLogo} />
             </button>
           </div>
         </Modal>
