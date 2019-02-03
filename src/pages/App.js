@@ -26,7 +26,7 @@ class App extends Component {
       initialize('arkane').then(startWatching);
     }
 
-    if (typeof window.thor !== 'undefined' && provider === 'thor') {
+    if (provider === 'thor') {
       initialize('thor').then(startWatching);
     }
   }
