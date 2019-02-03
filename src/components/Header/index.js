@@ -34,7 +34,7 @@ class BlockingWarning extends Component {
   }
 
   connectArkane() {
-    localStorage.setItem('provider', 'thor');
+    localStorage.setItem('provider', 'arkane');
     window.arkaneConnect.authenticate();
   }
 
