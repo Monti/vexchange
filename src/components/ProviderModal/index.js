@@ -20,7 +20,7 @@ class ProviderModal extends Component {
   }
 
   componentDidMount() {
-    const provider = localStorage.getItem('provider');
+    const provider = localStorage.getItem('currentProvider');
 
     if (provider) {
       this.setState({
@@ -35,7 +35,7 @@ class ProviderModal extends Component {
       provider: 'thor',
       visible: false
     }, () => {
-      localStorage.setItem('provider', 'thor');
+      localStorage.setItem('currentProvider', 'thor');
     });
   }
 
@@ -45,7 +45,7 @@ class ProviderModal extends Component {
       visible: false
     }, () => {
       window.arkaneConnect.authenticate();
-      localStorage.setItem('provider', 'arkane');
+      localStorage.setItem('currentProvider', 'arkane');
     });
   }
 

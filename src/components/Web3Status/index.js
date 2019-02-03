@@ -54,12 +54,12 @@ class Web3Status extends Component {
   }
 
   switchToCommet() {
-    localStorage.setItem('provider', 'thor');
+    localStorage.setItem('currentProvider', 'thor');
     window.location.reload();
   }
 
   switchToArkane() {
-    localStorage.setItem('provider', 'arkane');
+    localStorage.setItem('currentProvider', 'arkane');
     window.arkaneConnect.authenticate();
   }
 
