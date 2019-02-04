@@ -26,16 +26,27 @@ class Web3Status extends Component {
       isShowingModal: false,
     };
 
-    this.renderArkaneMenu = this.renderArkaneMenu.bind(this);
-    this.renderCometMenu = this.renderCometMenu.bind(this);
     this.switchToArkane = this.switchToArkane.bind(this);
     this.switchToCommet = this.switchToCommet.bind(this);
+    this.renderCometMenu = this.renderCometMenu.bind(this);
+    this.renderArkaneMenu = this.renderArkaneMenu.bind(this);
+    this.setCurrentProvider = this.setCurrentProvider.bind(this);
+  }
+
+  componentDidMount() {
+    this.setCurrentProvider();
   }
 
   componentWillReceiveProps({ wallets, ...rest }) {
     if (!isEqual(this.props.wallets, wallets)) {
       this.setState({ wallets });
     }
+  }
+
+  setCurrentProvider() {
+    const currentProvider = localStorage.getItem('currentProvider');
+
+    this.setState({ currentProvider });
   }
 
   handleClick = () => {
@@ -101,7 +112,7 @@ class Web3Status extends Component {
         <Menu.Item key="manage" onClick={this.manageWallets}>
           Manage Wallets
         </Menu.Item>
-        <Menu.Item key="manage" onClick={this.switchToCommet}>
+        <Menu.Item key="comet" onClick={this.switchToCommet}>
           Switch to Comet
         </Menu.Item>
         <Menu.Item key="logout" onClick={this.logout}>
@@ -149,6 +160,7 @@ class Web3Status extends Component {
 
   render() {
     const { t, address, pending, confirmed, wallets = [], wallet } = this.props;
+    const { currentProvider } = this.state;
     const hasPendingTransactions = !!pending.length;
     const hasConfirmedTransactions = !!confirmed.length;
 
@@ -157,7 +169,7 @@ class Web3Status extends Component {
     return (
       <Dropdown
         placement="bottomLeft"
-        overlay={(wallets.length > 0) ? this.renderArkaneMenu : this.renderCometMenu}>
+        overlay={ currentProvider === 'arkane' ? this.renderArkaneMenu : this.renderCometMenu}>
         <Button type={ hasPendingTransactions ? 'primary' : ''}>
           <div className={classnames("web3-status", {
             'web3-status__connected': this.props.isConnected,
@@ -222,6 +234,7 @@ export default connect(
     isConnected: !!(state.web3connect.web3 && state.web3connect.account),
     pending: state.web3connect.transactions.pending,
     confirmed: state.web3connect.transactions.confirmed,
+    provider: state.web3connect.provider
   }),
   dispatch => ({
     updateWallet: wallet => dispatch(updateWallet(wallet)),
