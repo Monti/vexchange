@@ -14,7 +14,7 @@ import './web3-status.scss';
 import Modal from '../Modal';
 
 function getVeforgeLink(tx) {
-  return `https://veforge.com/transactions/${tx}`;
+  return `https://explore.veforge.com/transactions/${tx}`;
 }
 
 class Web3Status extends Component {
