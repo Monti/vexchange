@@ -488,7 +488,6 @@ class Swap extends Component {
             deadline,
             outputCurrency,
           );
-          console.log('hit 2')
 
           if (provider === 'arkane') {
             const signer = window.arkaneConnect.createSigner();
@@ -628,7 +627,6 @@ class Swap extends Component {
             deadline,
             outputCurrency,
           );
-          console.log('boom')
 
           if (provider === 'arkane') {
             const signer = window.arkaneConnect.createSigner();

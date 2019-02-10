@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import { withNamespaces } from 'react-i18next';
 import { 
   dismissBetaMessage,
-  dismissDisabledMessage
  } from '../../ducks/app';
 import {Tab, Tabs} from "../Tab";
 import { Alert } from 'antd';
@@ -19,7 +18,6 @@ class NavigationTabs extends Component {
     }),
     className: PropTypes.string,
     dismissBetaMessage: PropTypes.func.isRequired,
-    dismissDisabledMessage: PropTypes.func.isRequired,
     showBetaMessage: PropTypes.bool.isRequired,
   };
 
@@ -47,10 +45,8 @@ class NavigationTabs extends Component {
     const {
       t,
       showBetaMessage,
-      showDisabledMessage,
       className,
       dismissBetaMessage,
-      dismissDisabledMessage
     } = this.props;
     return (
       <div>
@@ -75,15 +71,6 @@ class NavigationTabs extends Component {
             closable
           />
         }
-        {
-          showDisabledMessage &&
-          <Alert
-            message="Currently, swaps and sends are disabled while we allow users to add liquidity and get familiar with the site."
-            type="error"
-            onClose={dismissDisabledMessage}
-            closable
-          />
-        }
       </div>
     );
   }
@@ -93,11 +80,9 @@ export default withRouter(
   connect(
     state => ({
       showBetaMessage: state.app.showBetaMessage,
-      showDisabledMessage: state.app.showDisabledMessage,
     }),
     dispatch => ({
       dismissBetaMessage: () => dispatch(dismissBetaMessage()),
-      dismissDisabledMessage: () => dispatch(dismissDisabledMessage()),
     }),
   )(withNamespaces()(NavigationTabs))
 );

@@ -54,7 +54,11 @@ class ProviderModal extends Component {
       <>
         { this.state.provider && this.props.render(this.state.provider) }
         <Modal
-          title="Which Provider do you want to use?"
+          title={(
+            <div>
+              You can manage a wallet using Arkane Network or Comet.<br /> Which would you prefer to use?
+            </div>
+          )}
           visible={this.state.visible}
           footer={null}
         >
