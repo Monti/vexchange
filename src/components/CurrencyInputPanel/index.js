@@ -5,6 +5,7 @@ import { CSSTransitionGroup } from "react-transition-group";
 import classnames from 'classnames';
 import { withRouter } from 'react-router-dom';
 import { withNamespaces } from 'react-i18next';
+import _ from 'lodash';
 import Fuse from '../../helpers/fuse';
 import Modal from '../Modal';
 import TokenLogo from '../TokenLogo';
@@ -35,6 +36,7 @@ const FUSE_OPTIONS = {
 
 const TOKEN_ADDRESS_TO_LABEL = { VET: 'VET' };
 
+const signingService = window.connex.vendor.sign('tx')
 class CurrencyInputPanel extends Component {
   static propTypes = {
     title: PropTypes.string,
@@ -291,9 +293,8 @@ class CurrencyInputPanel extends Component {
         className='currency-input-panel__sub-currency-select'
         onClick={async () => {
           const contract = new web3.eth.Contract(ERC20_ABI, selectedTokenAddress);
+          const contractMethod = contract.methods.approve;
           const amount = BN(10 ** decimals).multipliedBy(10 ** 8).toFixed(0);
-          const { approve } = contract.methods;
-          const fn = approve(fromToken[selectedTokenAddress], amount);
 
           if (provider === 'arkane') {
             const signer = window.arkaneConnect.createSigner();
@@ -304,7 +305,7 @@ class CurrencyInputPanel extends Component {
               clauses: [{
                 to: selectedTokenAddress,
                 amount: 0, 
-                data: fn.encodeABI(),
+                data: contractMethod(fromToken[selectedTokenAddress], amount).encodeABI(),
               }]
             }).then(({ result }) => {
               addPendingTx(result.transactionHash);
@@ -316,18 +317,22 @@ class CurrencyInputPanel extends Component {
             return;
           }
 
-          fn.send({
-            from: account,
-            gas: await fn.estimateGas({
-              from: account,
-            }),
-          }, (err, data) => {
-            if (!err && data) {
-              addPendingTx(data);
-              addApprovalTx({ tokenAddress: selectedTokenAddress, txId: data});
-            }
-          });
+          const approveABI = _.find(ERC20_ABI, { name: 'approve' });
+          const approve = window.connex.thor.account(selectedTokenAddress).method(approveABI);
 
+          signingService.request([
+            approve.asClause(
+              fromToken[selectedTokenAddress],
+              amount,
+            )
+          ])
+            .then(({ txid }) => {
+              addPendingTx(txid);
+              addApprovalTx({ tokenAddress: selectedTokenAddress, txid });
+            })
+            .catch(error => {
+              console.log(error);
+            });
         }}
       >
         {t("unlock")}
