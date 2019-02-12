@@ -169,7 +169,9 @@ class Web3Status extends Component {
     return (
       <Dropdown
         placement="bottomLeft"
+        trigger={['click']}
         overlay={ currentProvider === 'arkane' ? this.renderArkaneMenu : this.renderCometMenu}>
+
         <Button type={ hasPendingTransactions ? 'primary' : ''}>
           <div className={classnames("web3-status", {
             'web3-status__connected': this.props.isConnected,
@@ -192,6 +194,7 @@ class Web3Status extends Component {
           </div>
 
         </Button>
+        
       </Dropdown>
     );
   }
