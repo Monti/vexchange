@@ -1,3 +1,5 @@
+import { thorify } from 'thorify'
+import { extend } from 'thorify/dist/extend';
 import * as Arkane from '@arkane-network/arkane-connect';
 import { BigNumber as BN } from 'bignumber.js';
 import { hexToNumberString } from 'web3-utils';
@@ -28,12 +30,21 @@ if (process.env.REACT_APP_NETWORK === 'testnet') {
 const thor = (dispatch, getState) => {
   const { web3connect } = getState();
   const signingService = window.connex.vendor.sign('cert');
+  let web3;
 
   return new Promise(async (resolve, reject) => {
     if (web3connect.web3) {
       resolve(web3connect.web3);
       return;
     }
+
+    if (process.env.REACT_APP_NETWORK === 'testnet') {
+      web3 = thorify(new Web3(), "http://127.0.0.1:8669/");
+    } else {
+      web3 = thorify(new Web3(), "https://vechain-api.monti.finance");
+    }
+
+    extend(web3);
 
     if (typeof window.connex !== 'undefined') {
       signingService.request({
@@ -48,7 +59,10 @@ const thor = (dispatch, getState) => {
         acc.get().then(info => {
           const balance = hexToNumberString(info.balance);
 
-          dispatch({ type: INITIALIZE });
+          dispatch({
+            type: INITIALIZE,
+            payload: web3,
+          });
           dispatch({ type: UPDATE_WALLET, payload: annex.signer });
           dispatch({ type: UPDATE_ACCOUNT, payload: annex.signer });
           dispatch(watchBalance({ balanceOf: annex.signer }));
