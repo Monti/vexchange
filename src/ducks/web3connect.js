@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { BigNumber as BN } from 'bignumber.js';
+import { hexToNumberString } from 'web3-utils';
+import _ from 'lodash';
 import initialState from './initialState';
 import ERC20_ABI from "../abi/erc20";
 import ERC20_WITH_BYTES_ABI from "../abi/erc20_symbol_bytes32";
@@ -86,6 +88,7 @@ export const selectors = () => (dispatch, getState) => {
     getApprovals,
   };
 };
+
 
 const Balance = (value, label = '', decimals = 0) => ({
   value: BN(value),
@@ -204,29 +207,30 @@ export const sync = () => async (dispatch, getState) => {
       }
 
     } else {
-      const accounts = await web3.eth.getAccounts();
-      if (account !== accounts[0]) {
-        dispatch({ type: UPDATE_ACCOUNT, payload: accounts[0] });
-        dispatch(watchBalance({ balanceOf: accounts[0] }));
-      }
+      dispatch({ type: UPDATE_ACCOUNT, payload: account });
+      dispatch(watchBalance({ balanceOf: account }));
     }
 
   } catch(error) {
     return;
   }
 
-  if (!networkId) {
-    const chainTagHex = await web3.eth.getChainTag();
+  // if (!networkId) {
+  //   const chainTagHex = await web3.eth.getChainTag();
 
-    dispatch({
-      type: UPDATE_NETWORK_ID,
-      payload: parseInt(chainTagHex, 16),
-    });
-  }
+  //   dispatch({
+  //     type: UPDATE_NETWORK_ID,
+  //     payload: parseInt(chainTagHex, 16),
+  //   });
+  // }
 
   // Sync VeChain Balances
   watched.balances.vechain.forEach(async address => {
-    const balance = await web3.eth.getBalance(address);
+    const acc = window.connex.thor.account(address);
+
+    const info = await acc.get().then(info => info.balance);
+    const balance = hexToNumberString(info.balance);
+
     const { value } = getBalance(address);
 
     if (value.isEqualTo(BN(balance))) {
@@ -250,15 +254,15 @@ export const sync = () => async (dispatch, getState) => {
         return;
       }
 
-      const contract = contracts[tokenAddress] || new web3.eth.Contract(ERC20_ABI, tokenAddress);
-      const contractBytes32 = contracts[tokenAddress] || new web3.eth.Contract(ERC20_WITH_BYTES_ABI, tokenAddress);
+      // const contract = contracts[tokenAddress] || new web3.eth.Contract(ERC20_ABI, tokenAddress);
+      // const contractBytes32 = contracts[tokenAddress] || new web3.eth.Contract(ERC20_WITH_BYTES_ABI, tokenAddress);
 
       if (!contracts[tokenAddress]) {
         dispatch({
           type: ADD_CONTRACT,
           payload: {
             address: tokenAddress,
-            contract: contract,
+            // contract: contract,
           },
         });
       }
@@ -266,14 +270,22 @@ export const sync = () => async (dispatch, getState) => {
       const watchlist = watched.balances[tokenAddress] || [];
       watchlist.forEach(async address => {
         const tokenBalance = getBalance(address, tokenAddress);
-        const balance = await contract.methods.balanceOf(address).call();
-        const decimals = tokenBalance.decimals || await contract.methods.decimals().call();
         let symbol = tokenBalance.symbol;
+
+        const balanceOfABI = _.find(ERC20_ABI, { name: 'balanceOf' });
+        const balance = window.connex.thor.account(tokenAddress).method(balanceOfABI).call(address);
+
+        const decimalsABI = _.find(ERC20_ABI, { name: 'decimals' });
+        const decimals = window.connex.thor.account(tokenAddress).method(decimalsABI).call();
+
+        const symbolABI = _.find(ERC20_ABI, { name: 'symbol' });
+        const bytes32SymbolABI = _.find(ERC20_WITH_BYTES_ABI, { name: 'symbol' });
+
         try {
-          symbol = symbol || await contract.methods.symbol().call().catch();
+          symbol = symbol || window.connex.thor.account(tokenAddress).method(symbolABI).call();
         } catch (e) {
           try {
-            symbol = symbol || web3.utils.hexToString(await contractBytes32.methods.symbol().call().catch());
+            symbol = symbol || window.connex.thor.account(tokenAddress).method(bytes32SymbolABI).call();
           } catch (err) {
             console.log(err)
           }
@@ -283,35 +295,52 @@ export const sync = () => async (dispatch, getState) => {
           return;
         }
 
-        dispatch({
-          type: UPDATE_TOKEN_BALANCE,
-          payload: {
-            tokenAddress,
-            balanceOf: address,
-            balance: Balance(balance, symbol, decimals),
-          },
-        });
+        Promise.all([balance, symbol, decimals]).then(data => {
+          const balance = data[0].decoded.balance;
+          const symbol = data[1].decoded['0'];
+          const decimals = data[2].decoded['0'];
+
+          dispatch({
+            type: UPDATE_TOKEN_BALANCE,
+            payload: {
+              tokenAddress,
+              balanceOf: address,
+              balance: Balance(balance, symbol, decimals),
+            },
+          });
+        })
       });
     });
 
   // Update Approvals
   Object.entries(watched.approvals)
     .forEach(([tokenAddress, token]) => {
-      const contract = contracts[tokenAddress] || new web3.eth.Contract(ERC20_ABI, tokenAddress);
-      const contractBytes32 = contracts[tokenAddress] || new web3.eth.Contract(ERC20_WITH_BYTES_ABI, tokenAddress);
+      // const contract = contracts[tokenAddress] || new web3.eth.Contract(ERC20_ABI, tokenAddress);
+      // const contractBytes32 = contracts[tokenAddress] || new web3.eth.Contract(ERC20_WITH_BYTES_ABI, tokenAddress);
 
       Object.entries(token)
         .forEach(([ tokenOwnerAddress, tokenOwner ]) => {
           tokenOwner.forEach(async spenderAddress => {
             const approvalBalance = getApprovals(tokenAddress, tokenOwnerAddress, spenderAddress);
-            const balance = await contract.methods.allowance(tokenOwnerAddress, spenderAddress).call();
-            const decimals = approvalBalance.decimals || await contract.methods.decimals().call();
             let symbol = approvalBalance.label;
+
+            const balanceABI = _.find(ERC20_ABI, { name: 'allowance' });
+            const balance = window.connex.thor.account(tokenAddress).method(balanceABI).call(tokenOwnerAddress, spenderAddress)
+
+            const decimalsABI = _.find(ERC20_ABI, { name: 'decimals' });
+            const decimals = approvalBalance.decimals ||
+              window.connex.thor.account(tokenAddress).method(decimalsABI).call();
+
+            const symbolABI = _.find(ERC20_ABI, { name: 'symbol' });
+            const bytes32SymbolABI = _.find(ERC20_WITH_BYTES_ABI, { name: 'symbol' });
+
             try {
-              symbol = symbol || await contract.methods.symbol().call();
+              symbol = symbol || window.connex.thor.account(tokenAddress).method(symbolABI).call();
             } catch (e) {
               try {
-                symbol = symbol || web3.utils.hexToString(await contractBytes32.methods.symbol().call());
+                symbol = symbol || 
+                  hexToNumberString(window.connex.thor.account(tokenAddress).method(bytes32SymbolABI).call());
+                console.log(symbol);
               } catch (err) {
                 console.log(err)
               }
@@ -321,12 +350,18 @@ export const sync = () => async (dispatch, getState) => {
               return;
             }
 
-            dispatch(updateApprovals({
-              tokenAddress,
-              tokenOwner: tokenOwnerAddress,
-              spender: spenderAddress,
-              balance: Balance(balance, symbol, decimals),
-            }));
+            Promise.all([balance, symbol, decimals]).then(data => {
+              const balance = data[0].decoded['0'];
+
+              if (_.isObject(data[1]) && _.isObject(data[2])) {
+                dispatch(updateApprovals({
+                  tokenAddress,
+                  tokenOwner: tokenOwnerAddress,
+                  spender: spenderAddress,
+                  balance: Balance(balance, data[1].decoded['0'], data[2].decoded['0']),
+                }));
+              }
+            });
           });
         });
     });

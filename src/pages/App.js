@@ -38,6 +38,7 @@ class App extends Component {
       return;
     }
 
+    console.log(web3.eth.getChainTag)
     web3.eth.getChainTag()
       .then(chainTagHex => {
         const chainTag = parseInt(chainTagHex, 16)
