@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import MediaQuery from 'react-responsive';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
@@ -66,15 +67,29 @@ class BlockingWarning extends Component {
       content = [
         <div key="warning-title">No Vechain wallet found</div>,
         <div key="warning-desc" className="header__dialog__description">
-          Please visit us after installing Comet or Arkane Network
+          <MediaQuery query="(min-width: 768px)">
+            {(matches) => {
+              if (matches) {
+                return 'Please visit us after installing Comet or Arkane Network.';
+              } else {
+                return 'Unfortunately Comet does not work on mobile. If you would like to use Vexchange on mobile please use Arkane or visit Vexchange on a desktop computer.';
+              }
+            }}
+          </MediaQuery>
         </div>,
         <div key="warning-logos" className="header__download">
-          {(
-            [
-              <img src={CometLogo} key="comet" onClick={() => window.open(getCometLinks(), '_blank')} />,
-              <img src={AkraneLogo} key="arkane" onClick={() => window.open(getArkaneLinks(), '_blank')} />
-            ]
-          )}
+          <MediaQuery query="(min-width: 768px)">
+            {(matches) => {
+              if (matches) {
+                return [
+                  <img src={CometLogo} key="comet" onClick={() => window.open(getCometLinks(), '_blank')} />,
+                  <img src={AkraneLogo} key="arkane" onClick={() => window.open(getArkaneLinks(), '_blank')} />
+                ]
+              } else {
+                return <img src={AkraneLogo} onClick={() => window.open(getArkaneLinks(), '_blank')} />
+              }
+            }}
+          </MediaQuery>
         </div>,
       ];
     }
@@ -86,7 +101,6 @@ class BlockingWarning extends Component {
         })}
       >
         {content}
-
 
         { window.arkaneConnect &&
           <div className="header__footer">
