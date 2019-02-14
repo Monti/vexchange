@@ -121,31 +121,6 @@ class CreateExchange extends Component {
     const factory = new web3.eth.Contract(FACTORY_ABI, factoryAddress);
     const fn = factory.methods.createExchange(tokenAddress);
 
-    if (provider === 'arkane') {
-      const signer = window.arkaneConnect.createSigner();
-
-      signer.executeNativeTransaction({
-        type: 'VET_TRANSACTION',
-         walletId: wallet.id,
-        clauses: [{
-          amount: 0,
-          to: factoryAddress,
-          data: fn.encodeABI(),
-        }]
-      }).then(({ result }) => {
-        this.setState({
-          label: '',
-          decimals: 0,
-          tokenAddress: '',
-        });
-        this.props.addPendingTx(result.transactionHash);
-      }).catch(reason => {
-        console.log(reason);
-      })
-
-      return;
-    }
-
     fn.send({
       from: account,
       gas: await fn.estimateGas({
@@ -249,7 +224,8 @@ class CreateExchange extends Component {
 export default withRouter(
   connect(
     state => ({
-      isConnected: Boolean(state.web3connect.account) && state.web3connect.networkId == (process.env.REACT_APP_NETWORK_ID|| 74),
+      isConnected: !!window.connex,
+      // isConnected: Boolean(state.web3connect.account) && state.web3connect.networkId == (process.env.REACT_APP_NETWORK_ID|| 74),
       account: state.web3connect.account,
       balances: state.web3connect.balances,
       web3: state.web3connect.web3,

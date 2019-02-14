@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { CSSTransitionGroup } from "react-transition-group";
 import classnames from 'classnames';
+import { isAddress } from 'web3-utils';
 import { withRouter } from 'react-router-dom';
 import { withNamespaces } from 'react-i18next';
 import _ from 'lodash';
@@ -129,20 +130,24 @@ class CurrencyInputPanel extends Component {
       );
     }
 
-    if (web3 && web3.utils && web3.utils.isAddress(searchQuery)) {
+    if (isAddress(searchQuery)) {
       const tokenAddress = searchQuery;
       const { label } = selectors().getBalance(account, tokenAddress);
-      const factory = new web3.eth.Contract(FACTORY_ABI, factoryAddress);
+
+      const getExchangeABI = _.find(FACTORY_ABI, { name: 'getExchange' });
+      const getExchange = window.connex.thor.account(factoryAddress).method(getExchangeABI);
       const exchangeAddress = fromToken[tokenAddress];
 
       if (!exchangeAddress) {
         this.setState({loadingExchange: true});
-        factory.methods.getExchange(tokenAddress).call((err, data) => {
-          if (!err && data !== '0x0000000000000000000000000000000000000000') {
+
+        getExchange.call(tokenAddress).then(data => {
+          if (data !== '0x0000000000000000000000000000000000000000') {
             addExchange({ label, tokenAddress, exchangeAddress: data });
           }
           this.setState({loadingExchange: false});
         });
+
         return;
       }
     }
@@ -160,7 +165,7 @@ class CurrencyInputPanel extends Component {
       results = fuse.search(this.state.searchQuery);
     }
 
-    if (!results.length && web3 && web3.utils && web3.utils.isAddress(searchQuery)) {
+    if (!results.length && isAddress(searchQuery)) {
       const { label } = selectors().getBalance(account, searchQuery);
       return [
         <div key="token-modal-no-exchange" className="token-modal__token-row token-modal__token-row--no-exchange">
@@ -250,15 +255,12 @@ class CurrencyInputPanel extends Component {
       selectedTokenAddress,
       account,
       exchangeAddresses: { fromToken },
-      web3,
       disableUnlock,
       transactions,
       pendingApprovals,
       value,
       addApprovalTx,
       addPendingTx,
-      wallet,
-      provider,
     } = this.props;
 
     if (disableUnlock || !selectedTokenAddress || selectedTokenAddress === 'VET') {
@@ -292,38 +294,13 @@ class CurrencyInputPanel extends Component {
       <button
         className='currency-input-panel__sub-currency-select'
         onClick={async () => {
-          const contract = new web3.eth.Contract(ERC20_ABI, selectedTokenAddress);
-          const contractMethod = contract.methods.approve;
-          const amount = BN(10 ** decimals).multipliedBy(10 ** 8).toFixed(0);
-
-          if (provider === 'arkane') {
-            const signer = window.arkaneConnect.createSigner();
-      
-            signer.executeNativeTransaction({
-              type: 'VET_TRANSACTION',
-              walletId: wallet.id,
-              clauses: [{
-                to: selectedTokenAddress,
-                amount: 0, 
-                data: contractMethod(fromToken[selectedTokenAddress], amount).encodeABI(),
-              }]
-            }).then(({ result }) => {
-              addPendingTx(result.transactionHash);
-              addApprovalTx({ tokenAddress: selectedTokenAddress, txId: result.transactionHash });
-            }).catch(reason => {
-              console.log(reason);
-            });
-      
-            return;
-          }
-
           const approveABI = _.find(ERC20_ABI, { name: 'approve' });
           const approve = window.connex.thor.account(selectedTokenAddress).method(approveABI);
 
           signingService.request([
             approve.asClause(
               fromToken[selectedTokenAddress],
-              amount,
+              BN(10 ** decimals).multipliedBy(10 ** 8).toFixed(0)
             )
           ])
             .then(({ txid }) => {

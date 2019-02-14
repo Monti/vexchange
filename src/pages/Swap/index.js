@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import {BigNumber as BN} from "bignumber.js";
 import MediaQuery from 'react-responsive';
+import _ from 'lodash';
 import { withNamespaces } from 'react-i18next';
 import { selectors, addPendingTx } from '../../ducks/web3connect';
 import Header from '../../components/Header';
@@ -11,8 +12,6 @@ import NavigationTabs from '../../components/NavigationTabs';
 import CurrencyInputPanel from '../../components/CurrencyInputPanel';
 import ContextualInfo from '../../components/ContextualInfo';
 import OversizedPanel from '../../components/OversizedPanel';
-import DropdownBlue from "../../assets/images/dropdown-blue.svg";
-import DropupBlue from "../../assets/images/dropup-blue.svg";
 import ArrowDownBlue from '../../assets/images/arrow-down-blue.svg';
 import ArrowDownGrey from '../../assets/images/arrow-down-grey.svg';
 import { getBlockDeadline } from '../../helpers/web3-utils';
@@ -23,6 +22,8 @@ import "./swap.scss";
 
 const INPUT = 0;
 const OUTPUT = 1;
+
+const signingService = window.connex.vendor.sign('tx')
 
 class Swap extends Component {
   static propTypes = {
@@ -394,130 +395,49 @@ class Swap extends Component {
       // swap input
       switch(type) {
         case 'ETH_TO_TOKEN':
-          const { ethToTokenSwapInput } = new web3.eth.Contract(EXCHANGE_ABI, fromToken[outputCurrency]).methods;
+          const ethToTokenSwapInputABI = _.find(EXCHANGE_ABI, { name: 'ethToTokenSwapInput' });
+          const ethToTokenSwapInput = window.connex.thor.account(fromToken[outputCurrency]).method(ethToTokenSwapInputABI);
 
-          const ethToToken = ethToTokenSwapInput(
-            BN(outputValue).multipliedBy(10 ** outputDecimals).multipliedBy(1 - ALLOWED_SLIPPAGE).toFixed(0),
-            deadline,
-          );
-
-          if (provider === 'arkane') {
-            const signer = window.arkaneConnect.createSigner();
-
-            signer.executeNativeTransaction({
-              type: 'VET_TRANSACTION',
-               walletId: wallet.id,
-              clauses: [{
-                to: fromToken[outputCurrency],
-                amount: BN(inputValue).multipliedBy(10 ** 18).toFixed(0),
-                data: ethToToken.encodeABI(),
-              }]
-            }).then(({ result }) => {
-              this.reset();
-              addPendingTx(result.transactionHash);
-            }).catch(reason => {
-              console.log(reason);
-            })
-
-            return;
-          }
-
-          ethToToken.send({
-            gas: await ethToToken.estimateGas({
-              from: account,
-              value: BN(inputValue).multipliedBy(10 ** 18).toFixed(0)
-            }),
-            from: account,
-            value: BN(inputValue).multipliedBy(10 ** 18).toFixed(0)
-          }, (err, data) => {
-            if (!err) {
-              addPendingTx(data);
-              this.reset();
-            }
+          signingService.request([
+            ethToTokenSwapInput.asClause(
+              BN(outputValue).multipliedBy(10 ** outputDecimals).multipliedBy(1 - ALLOWED_SLIPPAGE).toFixed(0),
+              deadline,
+            )
+          ]).then(( {txid }) => {
+            addPendingTx(txid);
+            this.reset();
           });
         break;
         case 'TOKEN_TO_ETH':
-          const { tokenToEthSwapInput } = new web3.eth.Contract(EXCHANGE_ABI, fromToken[inputCurrency]).methods;
+          const tokenToEthSwapInputABI = _.find(EXCHANGE_ABI, { name: 'tokenToEthSwapInput' });
+          const tokenToEthSwapInput = window.connex.thor.account(fromToken[inputCurrency]).method(tokenToEthSwapInputABI);
 
-          const tokenToEth = tokenToEthSwapInput(
-            BN(inputValue).multipliedBy(10 ** inputDecimals).toFixed(0),
-            BN(outputValue).multipliedBy(10 ** outputDecimals).multipliedBy(1 - ALLOWED_SLIPPAGE).toFixed(0),
-            deadline,
-          );
-
-          if (provider === 'arkane') {
-            const signer = window.arkaneConnect.createSigner();
-
-            signer.executeNativeTransaction({
-              type: 'VET_TRANSACTION',
-               walletId: wallet.id,
-              clauses: [{
-                amount: 0,
-                to: fromToken[inputCurrency],
-                data: tokenToEth.encodeABI(),
-              }]
-            }).then(({ result }) => {
-              this.reset();
-              addPendingTx(result.transactionHash);
-            }).catch(reason => {
-              console.log(reason);
-            })
-
-            return;
-          }
-
-          tokenToEth.send({
-            gas: await tokenToEth.estimateGas({
-              from: account,
-            }),
-            from: account, 
-          }, (err, data) => {
-            if (!err) {
-              addPendingTx(data);
-              this.reset();
-            }
+          signingService.request([
+            tokenToEthSwapInput.asClause(
+              BN(inputValue).multipliedBy(10 ** inputDecimals).toFixed(0),
+              BN(outputValue).multipliedBy(10 ** outputDecimals).multipliedBy(1 - ALLOWED_SLIPPAGE).toFixed(0),
+              deadline,
+            )
+          ]).then(( {txid }) => {
+            addPendingTx(txid);
+            this.reset();
           });
         break;
         case 'TOKEN_TO_TOKEN':
-          const { tokenToTokenSwapInput } = new web3.eth.Contract(EXCHANGE_ABI, fromToken[inputCurrency]).methods;
+          const tokenToTokenSwapInputABI = _.find(EXCHANGE_ABI, { name: 'tokenToTokenSwapInput' });
+          const tokenToTokenSwapInput = window.connex.thor.account(fromToken[inputCurrency]).method(tokenToTokenSwapInputABI);
 
-          const tokenToToken = tokenToTokenSwapInput(
-            BN(inputValue).multipliedBy(10 ** inputDecimals).toFixed(0),
-            BN(outputValue).multipliedBy(10 ** outputDecimals).multipliedBy(1 - TOKEN_ALLOWED_SLIPPAGE).toFixed(0),
-            '1',
-            deadline,
-            outputCurrency,
-          );
-
-          if (provider === 'arkane') {
-            const signer = window.arkaneConnect.createSigner();
-
-            signer.executeNativeTransaction({
-              type: 'VET_TRANSACTION',
-               walletId: wallet.id,
-              clauses: [{
-                amount: 0,
-                to: fromToken[inputCurrency],
-                data: tokenToToken.encodeABI(),
-              }]
-            }).then(({ result }) => {
-              this.reset();
-              addPendingTx(result.transactionHash);
-            }).catch(reason => {
-              console.log(reason);
-            })
-
-            return;
-          }
-
-          tokenToToken.send({
-            from: account,
-            gas: await tokenToToken.estimateGas({ from: account }),
-          }, (err, data) => {
-            if (!err) {
-              addPendingTx(data);
-              this.reset();
-            }
+          signingService.request([
+            tokenToTokenSwapInput.asClause(
+              BN(inputValue).multipliedBy(10 ** inputDecimals).toFixed(0),
+              BN(outputValue).multipliedBy(10 ** outputDecimals).multipliedBy(1 - TOKEN_ALLOWED_SLIPPAGE).toFixed(0),
+              '1',
+              deadline,
+              outputCurrency,
+            )
+          ]).then(( {txid }) => {
+            addPendingTx(txid);
+            this.reset();
           });
           break;
         default:
@@ -529,88 +449,32 @@ class Swap extends Component {
       // swap output
       switch (type) {
         case 'ETH_TO_TOKEN':
-          const { ethToTokenSwapOutput } = new web3.eth.Contract(EXCHANGE_ABI, fromToken[outputCurrency]).methods;
+          const ethToTokenSwapOutputABI = _.find(EXCHANGE_ABI, { name: 'ethToTokenSwapOutput' });
+          const ethToTokenSwapOutput = window.connex.thor.account(fromToken[outputCurrency]).method(ethToTokenSwapOutputABI);
 
-          const ethToToken2 = ethToTokenSwapOutput(
-            BN(outputValue).multipliedBy(10 ** outputDecimals).toFixed(0),
-            deadline,
-          );
-
-          if (provider == 'arkane') {
-            const signer = window.arkaneConnect.createSigner();
-
-            signer.executeNativeTransaction({
-              type: 'VET_TRANSACTION',
-               walletId: wallet.id,
-              clauses: [{
-                to: fromToken[outputCurrency],
-                amount: BN(inputValue).multipliedBy(10 ** inputDecimals).multipliedBy(1 + ALLOWED_SLIPPAGE).toFixed(0),
-                data: ethToToken2.encodeABI(),
-              }]
-            }).then(({ result }) => {
-              this.reset();
-              addPendingTx(result.transactionHash);
-            }).catch(reason => {
-              console.log(reason);
-            })
-
-            return;
-          }
-
-          ethToToken2.send({
-            gas: await ethToToken2.estimateGas({
-              from: account,
-              value: BN(inputValue).multipliedBy(10 ** inputDecimals).multipliedBy(1 + ALLOWED_SLIPPAGE).toFixed(0),
-            }),
-            from: account,
-            value: BN(inputValue).multipliedBy(10 ** inputDecimals).multipliedBy(1 + ALLOWED_SLIPPAGE).toFixed(0),
-          }, (err, data) => {
-            if (!err) {
-              addPendingTx(data);
-              this.reset();
-            }
+          signingService.request([
+            ethToTokenSwapOutput.asClause(
+              BN(outputValue).multipliedBy(10 ** outputDecimals).toFixed(0),
+              deadline,
+            )
+          ]).then(( { txid }) => {
+            addPendingTx(txid);
+            this.reset();
           });
           break;
         case 'TOKEN_TO_ETH':
-          const { tokenToEthSwapOutput } = new web3.eth.Contract(EXCHANGE_ABI, fromToken[inputCurrency]).methods;
+          const tokenToEthSwapOutputABI = _.find(EXCHANGE_ABI, { name: 'tokenToEthSwapOutput' });
+          const tokenToEthSwapOutput = window.connex.thor.account(fromToken[inputCurrency]).method(tokenToEthSwapOutputABI);
 
-          const tokenToEth = tokenToEthSwapOutput(
-            BN(outputValue).multipliedBy(10 ** outputDecimals).toFixed(0),
-            BN(inputValue).multipliedBy(10 ** inputDecimals).multipliedBy(1 + ALLOWED_SLIPPAGE).toFixed(0),
-            deadline,
-          );
-
-          if (provider == 'arkane') {
-            const signer = window.arkaneConnect.createSigner();
-
-            signer.executeNativeTransaction({
-              type: 'VET_TRANSACTION',
-               walletId: wallet.id,
-              clauses: [{
-                amount: 0,
-                to: fromToken[inputCurrency],
-                data: tokenToEth.encodeABI(),
-              }]
-            }).then(({ result }) => {
-              this.reset();
-              addPendingTx(result.transactionHash);
-            }).catch(reason => {
-              console.log(reason);
-            })
-
-            return;
-          }
-
-          tokenToEth.send({
-            gas: await tokenToEth.estimateGas({
-              from: account,
-            }),
-            from: account,
-          }, (err, data) => {
-            if (!err) {
-              addPendingTx(data);
-              this.reset();
-            }
+          signingService.request([
+            tokenToEthSwapOutput.asClause(
+              BN(outputValue).multipliedBy(10 ** outputDecimals).toFixed(0),
+              BN(inputValue).multipliedBy(10 ** inputDecimals).multipliedBy(1 + ALLOWED_SLIPPAGE).toFixed(0),
+              deadline,
+            )
+          ]).then(( { txid }) => {
+            addPendingTx(txid);
+            this.reset();
           });
           break;
         case 'TOKEN_TO_TOKEN':
@@ -618,47 +482,20 @@ class Swap extends Component {
             return;
           }
 
-          const { tokenToTokenSwapOutput } = new web3.eth.Contract(EXCHANGE_ABI, fromToken[inputCurrency]).methods;
+          const tokenToTokenSwapOutputABI = _.find(EXCHANGE_ABI, { name: 'tokenToTokenSwapOutput' });
+          const tokenToTokenSwapOutput = window.connex.thor.account(fromToken[inputCurrency]).method(tokenToTokenSwapOutputABI);
 
-          const tokenToToken2 = tokenToTokenSwapOutput(
-            BN(outputValue).multipliedBy(10 ** outputDecimals).toFixed(0),
-            BN(inputValue).multipliedBy(10 ** inputDecimals).multipliedBy(1 + TOKEN_ALLOWED_SLIPPAGE).toFixed(0),
-            inputAmountB.multipliedBy(1.2).toFixed(0),
-            deadline,
-            outputCurrency,
-          );
-
-          if (provider === 'arkane') {
-            const signer = window.arkaneConnect.createSigner();
-
-            signer.executeNativeTransaction({
-              type: 'VET_TRANSACTION',
-               walletId: wallet.id,
-              clauses: [{
-                amount: 0,
-                to: fromToken[inputCurrency],
-                data: tokenToToken2.encodeABI(),
-              }]
-            }).then(({ result }) => {
-              this.reset();
-              addPendingTx(result.transactionHash);
-            }).catch(reason => {
-              console.log(reason);
-            })
-
-            return;
-          }
-
-          tokenToToken2.send({
-            gas: await tokenToEth.estimateGas({
-              from: account,
-            }),
-            from: account,
-          }, (err, data) => {
-            if (!err) {
-              addPendingTx(data);
-              this.reset();
-            }
+          signingService.request([
+            tokenToTokenSwapOutput.asClause(
+              BN(outputValue).multipliedBy(10 ** outputDecimals).toFixed(0),
+              BN(inputValue).multipliedBy(10 ** inputDecimals).multipliedBy(1 + TOKEN_ALLOWED_SLIPPAGE).toFixed(0),
+              inputAmountB.multipliedBy(1.2).toFixed(0),
+              deadline,
+              outputCurrency,
+            )
+          ]).then(({ txid }) => {
+              addPendingTx(txid);
+            this.reset();
           });
 
           break;
@@ -921,12 +758,11 @@ class Swap extends Component {
 export default connect(
   state => ({
     balances: state.web3connect.balances,
-    isConnected: !!state.web3connect.account && state.web3connect.networkId == (process.env. REACT_APP_NETWORK_ID || 74),
+    isConnected: !!window.connex,
+    // isConnected: !!state.web3connect.account && state.web3connect.networkId == (process.env. REACT_APP_NETWORK_ID || 74),
     account: state.web3connect.account,
     exchangeAddresses: state.addresses.exchangeAddresses,
     web3: state.web3connect.web3,
-    provider: state.web3connect.provider,
-    wallet: state.web3connect.wallet,
   }),
   dispatch => ({
     selectors: () => dispatch(selectors()),
@@ -975,7 +811,6 @@ function getSwapType(inputCurrency, outputCurrency) {
   }
 
   if (inputCurrency !== 'VET' && outputCurrency !== 'VET') {
-    console.log('l')
     return 'TOKEN_TO_TOKEN'
   }
 

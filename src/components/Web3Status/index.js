@@ -2,12 +2,11 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
-import Web3 from 'web3';
-import { Menu, Dropdown, Icon, Button } from 'antd';
-import { updateWallet, startWatching, initialize } from '../../ducks/web3connect';
+import { isHexStrict, toChecksumAddress } from 'web3-utils';
+import { Button } from 'antd';
+import { startWatching } from '../../ducks/web3connect';
 import { CSSTransitionGroup } from "react-transition-group";
 import { withNamespaces } from 'react-i18next';
-import { isEqual } from 'lodash';
 import { picasso } from '@vechain/picasso'
 import './web3-status.scss';
 
@@ -22,31 +21,11 @@ class Web3Status extends Component {
     super(props);
 
     this.state = {
-      wallets: props.wallets,
       isShowingModal: false,
     };
-
-    this.switchToArkane = this.switchToArkane.bind(this);
-    this.switchToCommet = this.switchToCommet.bind(this);
-    this.renderCometMenu = this.renderCometMenu.bind(this);
-    this.renderArkaneMenu = this.renderArkaneMenu.bind(this);
-    this.setCurrentProvider = this.setCurrentProvider.bind(this);
   }
 
   componentDidMount() {
-    this.setCurrentProvider();
-  }
-
-  componentWillReceiveProps({ wallets, ...rest }) {
-    if (!isEqual(this.props.wallets, wallets)) {
-      this.setState({ wallets });
-    }
-  }
-
-  setCurrentProvider() {
-    const currentProvider = localStorage.getItem('currentProvider');
-
-    this.setState({ currentProvider });
   }
 
   handleClick = () => {
@@ -54,29 +33,6 @@ class Web3Status extends Component {
       this.setState({isShowingModal: true});
     }
   };
-
-  handleMenuItemClick = wallet => {
-    const { updateWallet } = this.props;
-    updateWallet(wallet);
-  }
-
-  manageWallets = () => {
-    window.arkaneConnect.manageWallets('VECHAIN');
-  }
-
-  switchToCommet() {
-    localStorage.setItem('currentProvider', 'thor');
-    window.location.reload();
-  }
-
-  switchToArkane() {
-    localStorage.setItem('currentProvider', 'arkane');
-    window.arkaneConnect.authenticate();
-  }
-
-  logout = () => {
-    window.arkaneConnect.logout();
-  }
 
   renderPendingTransactions() {
     return this.props.pending.map((transaction) => {
@@ -97,39 +53,6 @@ class Web3Status extends Component {
         </>
       );
     });
-  }
-
-  renderArkaneMenu() {
-    const { wallets = [] } = this.props;
-    return (
-      <Menu>
-        { wallets.map(wallet => (
-          <Menu.Item key={wallet.id} onClick={() => this.handleMenuItemClick(wallet)}>
-            { wallet.description }
-          </Menu.Item>
-        ))}
-        <Menu.Divider />
-        <Menu.Item key="manage" onClick={this.manageWallets}>
-          Manage Wallets
-        </Menu.Item>
-        <Menu.Item key="comet" onClick={this.switchToCommet}>
-          Switch to Comet
-        </Menu.Item>
-        <Menu.Item key="logout" onClick={this.logout}>
-          Log out of Arkane
-        </Menu.Item>
-      </Menu>
-    );
-  }
-
-  renderCometMenu() {
-    return (
-      <Menu>
-        <Menu.Item key="manage" onClick={this.switchToArkane}>
-          Switch to Arkane
-        </Menu.Item>
-      </Menu>
-    )
   }
 
   renderModal() {
@@ -159,40 +82,34 @@ class Web3Status extends Component {
   }
 
   render() {
-    const { t, address, pending, confirmed, wallets = [], wallet } = this.props;
-    const { currentProvider } = this.state;
+    const { t, address, pending, confirmed } = this.props;
     const hasPendingTransactions = !!pending.length;
     const hasConfirmedTransactions = !!confirmed.length;
 
     const svg = picasso(address);
 
     return (
-      <Dropdown
-        placement="bottomLeft"
-        overlay={ currentProvider === 'arkane' ? this.renderArkaneMenu : this.renderCometMenu}>
-        <Button type={ hasPendingTransactions ? 'primary' : ''}>
-          <div className={classnames("web3-status", {
-            'web3-status__connected': this.props.isConnected,
-            'web3-status--confirmed': hasConfirmedTransactions,
-          })}
-          onClick={this.handleClick}
-          >
-            <div className="web3-status__text">
-              { hasPendingTransactions ?
-                  getPendingText(pending, t("pending")) : 
-                  (wallet || {}).description ||
-                  getText(address, t("disconnected")) 
-              }
-            </div>
-            <div
-              className="web3-status__identicon"
-              style={{ background: `no-repeat url('data:image/svg+xml;utf8,${svg}')` }}
-            />
-            {this.renderModal()}
+      <Button type={ hasPendingTransactions ? 'primary' : ''}>
+        <div className={classnames("web3-status", {
+          'web3-status__connected': this.props.isConnected,
+          'web3-status--confirmed': hasConfirmedTransactions,
+        })}
+        onClick={this.handleClick}
+        >
+          <div className="web3-status__text">
+            { hasPendingTransactions ?
+                getPendingText(pending, t("pending")) : 
+                getText(address, t("disconnected")) 
+            }
           </div>
+          <div
+            className="web3-status__identicon"
+            style={{ background: `no-repeat url('data:image/svg+xml;utf8,${svg}')` }}
+          />
+          {this.renderModal()}
+        </div>
 
-        </Button>
-      </Dropdown>
+      </Button>
     );
   }
 }
@@ -207,17 +124,16 @@ function getPendingText(pendingTransactions, pendingLabel) {
 }
 
 function getText(text, disconnectedText) {
-  if (!text || text.length < 42 || !Web3.utils.isHexStrict(text)) {
+  if (!text || text.length < 42 || !isHexStrict(text)) {
     return disconnectedText;
   }
 
-  const address = Web3.utils.toChecksumAddress(text);
+  const address = toChecksumAddress(text);
   return `${address.substring(0, 6)}...${address.substring(38)}`;
 }
 
 Web3Status.propTypes = {
   isConnected: PropTypes.bool,
-  wallets: PropTypes.array,
   address: PropTypes.string,
 };
 
@@ -228,17 +144,14 @@ Web3Status.defaultProps = {
 
 export default connect(
   state => ({
-    wallet: state.web3connect.wallet,
-    wallets: state.web3connect.wallets,
     address: state.web3connect.account,
-    isConnected: !!(state.web3connect.web3 && state.web3connect.account),
+    isConnected: !!window.connex,
+    // isConnected: !!(state.web3connect.web3 && state.web3connect.account),
     pending: state.web3connect.transactions.pending,
     confirmed: state.web3connect.transactions.confirmed,
     provider: state.web3connect.provider
   }),
   dispatch => ({
-    updateWallet: wallet => dispatch(updateWallet(wallet)),
-    initialize: (initializeArkane) => dispatch(initialize(initializeArkane)),
     startWatching: () => dispatch(startWatching()),
   }),
 )(withNamespaces()(Web3Status));

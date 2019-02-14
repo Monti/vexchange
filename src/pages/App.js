@@ -20,31 +20,24 @@ class App extends Component {
   }
 
   componentWillMount() {
-    const { initialize, startWatching, provider } = this.props;
-
-    if (provider === 'arkane') {
-      initialize('arkane').then(startWatching);
-    }
-
-    if (provider === 'thor') {
-      initialize('thor').then(startWatching);
-    }
+    const { initialize, startWatching } = this.props;
+    initialize().then(startWatching);
   }
 
-  componentWillUpdate() {
-    const { web3, setAddresses } = this.props;
+  // componentWillUpdate() {
+  //   const { web3, setAddresses } = this.props;
 
-    if (this.hasSetNetworkId || !web3 || !web3.eth || !web3.eth.getChainTag) {
-      return;
-    }
+  //   if (this.hasSetNetworkId || !web3 || !web3.eth || !web3.eth.getChainTag) {
+  //     return;
+  //   }
 
-    web3.eth.getChainTag()
-      .then(chainTagHex => {
-        const chainTag = parseInt(chainTagHex, 16)
-        setAddresses(chainTag);
-        this.hasSetNetworkId = true;
-      });
-  }
+  //   web3.eth.getChainTag()
+  //     .then(chainTagHex => {
+  //       const chainTag = parseInt(chainTagHex, 16)
+  //       setAddresses(chainTag);
+  //       this.hasSetNetworkId = true;
+  //     });
+  // }
 
   render() {
 

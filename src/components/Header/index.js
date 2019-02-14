@@ -13,13 +13,13 @@ const links = {
   comet: {
     chrome: 'https://www.cometpowered.com/',
   },
-  arkane: {
-    chrome: 'https://www.arkane.network',
+  sync: {
+    chrome: 'https://github.com/vechain/thor-sync.electron/releases',
   },
 };
 
-function getArkaneLinks() {
-  return links.arkane.chrome;
+function getSyncLinks() {
+  return links.sync.chrome;
 }
 
 function getCometLinks() {
@@ -29,50 +29,27 @@ function getCometLinks() {
 class BlockingWarning extends Component {
   constructor() {
     super();
-
-    this.connectArkane = this.connectArkane.bind(this);
-  }
-
-  connectArkane() {
-    localStorage.setItem('currentProvider', 'arkane');
-    window.arkaneConnect.authenticate();
   }
 
   render () {
     const {
       isConnected,
       initialized,
-      networkId,
-      wallets = [],
     } = this.props;
 
     let content = [];
 
-    const correctNetworkId = process.env.REACT_APP_NETWORK_ID || 74;
-    const correctNetwork = process.env.REACT_APP_NETWORK || 'Main VeChain Network';
-
-    const wrongNetwork = +networkId !== +correctNetworkId;
-
-    if (wrongNetwork && initialized) {
-      content = [
-        <div key="warning-title">You are on the wrong network</div>,
-        <div key="warning-desc" className="header__dialog__description">
-          {`Please switch to ${correctNetwork}`}
-        </div>,
-      ];
-    }
-
-    if (!isConnected && initialized) {
+    if (!window.connex && initialized) {
       content = [
         <div key="warning-title">No Vechain wallet found</div>,
         <div key="warning-desc" className="header__dialog__description">
-          Please visit us after installing Comet or Arkane Network
+          Please visit us after installing Comet or Sync
         </div>,
         <div key="warning-logos" className="header__download">
           {(
             [
               <img src={CometLogo} key="comet" onClick={() => window.open(getCometLinks(), '_blank')} />,
-              <img src={AkraneLogo} key="arkane" onClick={() => window.open(getArkaneLinks(), '_blank')} />
+              <img src={AkraneLogo} key="sync" onClick={() => window.open(getSyncLinks(), '_blank')} />
             ]
           )}
         </div>,
@@ -82,24 +59,11 @@ class BlockingWarning extends Component {
     return (
       <div
         className={classnames('header__dialog', {
-          'header__dialog--disconnected': (!isConnected || wrongNetwork) && initialized,
+          'header__dialog--disconnected': !isConnected && initialized,
         })}
       >
         {content}
 
-
-        { window.arkaneConnect &&
-          <div className="header__footer">
-            <div className="header__dialog__description">
-              You have no linked Arkane wallet
-            </div>
-            { (wallets.length === 0) &&
-              <div className="header__authenticate-buttons">
-                <Button size="small" onClick={this.connectArkane}>Connect Arkane Account</Button>
-              </div>
-            }
-          </div>
-        }
       </div>
     );
   }
@@ -108,16 +72,9 @@ class BlockingWarning extends Component {
 class Header extends Component {
   constructor(props) {
     super(props);
-
-    this.state = {
-      wallets: [],
-      arkaneConnect: {},
-    };
   }
 
   render() {
-    const { wallets } = this.props;
-
     return (
       <div className="header">
         <BlockingWarning {...this.props} />
@@ -146,10 +103,8 @@ export default connect(
   state => ({
     currentAddress: state.web3connect.account,
     initialized: state.web3connect.initialized,
-    isConnected: !!state.web3connect.account,
+    isConnected: !!window.connex,
     web3: state.web3connect.web3,
     provider: state.web3connect.provider,
-    networkId: state.web3connect.networkId,
-    wallets: state.web3connect.wallets,
   }),
 )(Header);

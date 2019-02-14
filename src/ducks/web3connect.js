@@ -27,15 +27,7 @@ import {
   UPDATE_WALLETS,
 } from './creators';
 
-import thor from './thor';
-import arkane from './arkane';
-
-const convertArrayToMap = (array, key) => {
-  return array.reduce((obj, item) => {
-    obj[item[key]] = item;
-    return obj;
-  }, {});
-};
+import connex from './connex';
 
 // selectors
 export const selectors = () => (dispatch, getState) => {
@@ -97,15 +89,7 @@ const Balance = (value, label = '', decimals = 0) => ({
 });
 
 export const initialize = (initializer) => async (dispatch, getState) => {
-  const { provider } = getState().web3connect;
-
-  if (initializer === 'arkane' || provider === 'arkane') {
-    return arkane(dispatch, getState)
-  }
-
-  if (initializer === 'thor' || provider === 'thor') {
-    return thor(dispatch, getState);
-  }
+  return connex(dispatch, getState);
 };
 
 export const watchBalance = ({ balanceOf, tokenAddress }) => (dispatch, getState) => {
@@ -186,34 +170,8 @@ export const sync = () => async (dispatch, getState) => {
     watched,
     contracts,
     networkId,
-    arkaneConnect,
-    provider,
-    wallet,
     transactions: { pending, confirmed },
   } = getState().web3connect;
-
-  // Sync Account
-  try {
-    if (provider === 'arkane') {
-      const wallets = isEmpty(wallet) ?
-        await arkaneConnect.api.getWallets() :
-        [wallet];
-
-      if (account !== (wallets[0] || {}).address) {
-        dispatch({ type: UPDATE_ACCOUNT, payload: wallets[0].address });
-        dispatch({ type: UPDATE_WALLET, payload: wallets[0] });
-        dispatch({ type: UPDATE_WALLETS, payload: wallets });
-        dispatch(watchBalance({ balanceOf: wallets[0].address }));
-      }
-
-    } else {
-      dispatch({ type: UPDATE_ACCOUNT, payload: account });
-      dispatch(watchBalance({ balanceOf: account }));
-    }
-
-  } catch(error) {
-    return;
-  }
 
   // if (!networkId) {
   //   const chainTagHex = await web3.eth.getChainTag();
@@ -228,7 +186,7 @@ export const sync = () => async (dispatch, getState) => {
   watched.balances.vechain.forEach(async address => {
     const acc = window.connex.thor.account(address);
 
-    const info = await acc.get().then(info => info.balance);
+    const info = await acc.get().then(info => info);
     const balance = hexToNumberString(info.balance);
 
     const { value } = getBalance(address);

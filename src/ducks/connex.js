@@ -22,7 +22,7 @@ const Balance = (value, label = '', decimals = 0) => ({
 });
 
 if (process.env.REACT_APP_NETWORK === 'testnet') {
-  window.arkaneConnect = new Arkane.ArkaneConnect('Vexchange', { environment: 'staging' });
+  window.arkaneConnect = new Arkane.ArkaneConnect('Arketype', { environment: 'staging' });
 } else {
   window.arkaneConnect = new Arkane.ArkaneConnect('Vexchange');
 }
