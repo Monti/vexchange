@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { BigNumber as BN } from 'bignumber.js';
-import { hexToNumberString } from 'web3-utils';
+import { hexToNumberString, hexToBytes } from 'web3-utils';
 import _ from 'lodash';
 import initialState from './initialState';
 import ERC20_ABI from "../abi/erc20";
@@ -164,27 +164,28 @@ export const updateApprovals = ({ tokenAddress, tokenOwner, spender, balance }) 
 
 export const sync = () => async (dispatch, getState) => {
   const { getBalance, getApprovals } = dispatch(selectors());
-  const web3 = await dispatch(initialize());
+  const connex = await dispatch(initialize());
+
   const {
-    account,
     watched,
     contracts,
     networkId,
     transactions: { pending, confirmed },
   } = getState().web3connect;
 
-  // if (!networkId) {
-  //   const chainTagHex = await web3.eth.getChainTag();
+  if (!networkId) {
+    const block = await connex.thor.block(0).get();
+    const networkId = hexToBytes(block.id).pop();
 
-  //   dispatch({
-  //     type: UPDATE_NETWORK_ID,
-  //     payload: parseInt(chainTagHex, 16),
-  //   });
-  // }
+    dispatch({
+      type: UPDATE_NETWORK_ID,
+      payload: networkId,
+    });
+  }
 
   // Sync VeChain Balances
   watched.balances.vechain.forEach(async address => {
-    const acc = window.connex.thor.account(address);
+    const acc = connex.thor.account(address);
 
     const info = await acc.get().then(info => info);
     const balance = hexToNumberString(info.balance);
@@ -283,11 +284,11 @@ export const sync = () => async (dispatch, getState) => {
             let symbol = approvalBalance.label;
 
             const balanceABI = _.find(ERC20_ABI, { name: 'allowance' });
-            const balance = window.connex.thor.account(tokenAddress).method(balanceABI).call(tokenOwnerAddress, spenderAddress)
+            const balance = connex.thor.account(tokenAddress).method(balanceABI).call(tokenOwnerAddress, spenderAddress)
 
             const decimalsABI = _.find(ERC20_ABI, { name: 'decimals' });
             const decimals = approvalBalance.decimals ||
-              window.connex.thor.account(tokenAddress).method(decimalsABI).call();
+              connex.thor.account(tokenAddress).method(decimalsABI).call();
 
             const symbolABI = _.find(ERC20_ABI, { name: 'symbol' });
             const bytes32SymbolABI = _.find(ERC20_WITH_BYTES_ABI, { name: 'symbol' });
@@ -326,7 +327,7 @@ export const sync = () => async (dispatch, getState) => {
 
   pending.forEach(async txId => {
     try {
-      const data = await web3.eth.getTransactionReceipt(txId) || {};
+      const data = await connex.thor.transaction(txId).get() || {};
 
       // If data is an empty obj, then it's still pending.
       if (!('status' in data)) {
@@ -367,26 +368,14 @@ export const startWatching = () => async (dispatch, getState) => {
   setTimeout(() => dispatch(startWatching()), timeout);
 };
 
-export default function web3connectReducer(state = initialState, { type, payload, meta }) {
+export default function web3connectReducer(state = initialState, { type, payload }) {
   switch (type) {
     case INITIALIZE:
       return {
         ...state,
-        web3: payload,
-        arkaneConnect: (meta || {}).arkaneConnect,
-        provider: (meta || {}).provider,
+        connex: payload,
         initialized: true,
       };
-    case UPDATE_WALLET:
-      return {
-        ...state,
-        wallet: payload,
-      }
-    case UPDATE_WALLETS:
-      return {
-        ...state,
-        wallets: payload
-      }
     case UPDATE_ACCOUNT:
       return {
         ...state,
@@ -540,8 +529,7 @@ export class _Web3Connect extends Component {
 
 export const Web3Connect = connect(
   ({ web3connect }) => ({
-    web3: web3connect.web3,
-    provider: web3connect.provider
+    connex: web3connect.connex,
   }),
   dispatch => ({
     initialize: () => dispatch(initialize()),

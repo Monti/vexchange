@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { BrowserRouter, Redirect, Route } from 'react-router-dom';
+import { hexToBytes } from 'web3-utils';
 import MediaQuery from 'react-responsive';
 import { AnimatedSwitch } from 'react-router-transition';
 import { Web3Connect, startWatching, initialize } from '../ducks/web3connect';
@@ -15,29 +16,18 @@ import Tos from './Tos';
 import './App.scss';
 
 class App extends Component {
-  constructor(props) {
-    super(props);
-  }
-
-  componentWillMount() {
+  componentDidMount() {
     const { initialize, startWatching } = this.props;
     initialize().then(startWatching);
   }
 
-  // componentWillUpdate() {
-  //   const { web3, setAddresses } = this.props;
-
-  //   if (this.hasSetNetworkId || !web3 || !web3.eth || !web3.eth.getChainTag) {
-  //     return;
-  //   }
-
-  //   web3.eth.getChainTag()
-  //     .then(chainTagHex => {
-  //       const chainTag = parseInt(chainTagHex, 16)
-  //       setAddresses(chainTag);
-  //       this.hasSetNetworkId = true;
-  //     });
-  // }
+  componentWillReceiveProps({ connex }) {
+    connex.thor.block(0).get().then(block => {
+      const networkId = hexToBytes(block.id);
+      setAddresses(networkId);
+      this.hasSetNetworkId = true;
+    });
+  }
 
   render() {
 
@@ -85,12 +75,11 @@ export default connect(
   (state, props) => ({
     account: state.web3connect.account,
     initialized: state.web3connect.initialized,
-    web3: state.web3connect.web3,
-    provider: props.provider
+    connex: state.web3connect.connex,
   }),
   dispatch => ({
     setAddresses: networkId => dispatch(setAddresses(networkId)),
-    initialize: (initializeArkane) => dispatch(initialize(initializeArkane)),
+    initialize: () => dispatch(initialize()),
     startWatching: () => dispatch(startWatching()),
   }),
 )(App);

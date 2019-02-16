@@ -1,13 +1,12 @@
-import promisify from "./web3-promisfy";
-
-export function getBlockDeadline(web3, deadline) {
+export function getBlockDeadline(connex, deadline) {
   return new Promise(async (resolve, reject) => {
-    const blockNumber = await promisify(web3, 'getBlockNumber');
-    if (!blockNumber && blockNumber !== 0) {
+    const block = await connex.thor.block().get();
+
+    console.log(block)
+    if (!block.id && block.id !== 0) {
       return reject();
     }
 
-    const block = await promisify(web3, 'getBlock', blockNumber);
     if (!block) {
       return reject();
     }

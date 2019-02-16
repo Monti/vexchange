@@ -1,7 +1,5 @@
 const initialState = {
-  web3: null,
-  arkaneConnect: null,
-  provider: '',
+  connex: null,
   networkId: 0,
   initialized: false,
   account: '',

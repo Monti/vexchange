@@ -149,7 +149,7 @@ export default connect(
     // isConnected: !!(state.web3connect.web3 && state.web3connect.account),
     pending: state.web3connect.transactions.pending,
     confirmed: state.web3connect.transactions.confirmed,
-    provider: state.web3connect.provider
+    networkId: state.web3connect.networkId,
   }),
   dispatch => ({
     startWatching: () => dispatch(startWatching()),

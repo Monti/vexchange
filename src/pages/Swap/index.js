@@ -23,12 +23,11 @@ import "./swap.scss";
 const INPUT = 0;
 const OUTPUT = 1;
 
-const signingService = window.connex.vendor.sign('tx')
 
 class Swap extends Component {
   static propTypes = {
     account: PropTypes.string,
-    web3: PropTypes.object,
+    connex: PropTypes.object,
     isConnected: PropTypes.bool.isRequired,
     selectors: PropTypes.func.isRequired,
     addPendingTx: PropTypes.func.isRequired,
@@ -363,11 +362,9 @@ class Swap extends Component {
     const {
       exchangeAddresses: { fromToken },
       account,
-      web3,
+      connex,
       selectors,
       addPendingTx,
-      wallet,
-      provider,
     } = this.props;
     const {
       inputValue,
@@ -379,15 +376,18 @@ class Swap extends Component {
     } = this.state;
     const ALLOWED_SLIPPAGE = 0.025;
     const TOKEN_ALLOWED_SLIPPAGE = 0.04;
+    const signingService = connex.vendor.sign('tx')
 
     const type = getSwapType(inputCurrency, outputCurrency);
     const { decimals: inputDecimals } = selectors().getBalance(account, inputCurrency);
     const { decimals: outputDecimals } = selectors().getBalance(account, outputCurrency);
     let deadline;
+
     try {
-      deadline = await retry(() => getBlockDeadline(web3, 300));
+      deadline = await retry(() => getBlockDeadline(connex, 300));
+      console.log(deadline)
     } catch(e) {
-      // TODO: Handle error.
+      console.log(e)
       return;
     }
 
@@ -398,19 +398,23 @@ class Swap extends Component {
           const ethToTokenSwapInputABI = _.find(EXCHANGE_ABI, { name: 'ethToTokenSwapInput' });
           const ethToTokenSwapInput = window.connex.thor.account(fromToken[outputCurrency]).method(ethToTokenSwapInputABI);
 
+          ethToTokenSwapInput.value(BN(inputValue).multipliedBy(10 ** 18).toFixed(0));
+
           signingService.request([
             ethToTokenSwapInput.asClause(
               BN(outputValue).multipliedBy(10 ** outputDecimals).multipliedBy(1 - ALLOWED_SLIPPAGE).toFixed(0),
               deadline,
             )
-          ]).then(( {txid }) => {
-            addPendingTx(txid);
+          ]).then(data => {
+            addPendingTx(data.txid);
             this.reset();
+          }).catch(error => {
+            console.log(error);
           });
         break;
         case 'TOKEN_TO_ETH':
           const tokenToEthSwapInputABI = _.find(EXCHANGE_ABI, { name: 'tokenToEthSwapInput' });
-          const tokenToEthSwapInput = window.connex.thor.account(fromToken[inputCurrency]).method(tokenToEthSwapInputABI);
+          const tokenToEthSwapInput = connex.thor.account(fromToken[inputCurrency]).method(tokenToEthSwapInputABI);
 
           signingService.request([
             tokenToEthSwapInput.asClause(
@@ -425,7 +429,7 @@ class Swap extends Component {
         break;
         case 'TOKEN_TO_TOKEN':
           const tokenToTokenSwapInputABI = _.find(EXCHANGE_ABI, { name: 'tokenToTokenSwapInput' });
-          const tokenToTokenSwapInput = window.connex.thor.account(fromToken[inputCurrency]).method(tokenToTokenSwapInputABI);
+          const tokenToTokenSwapInput = connex.thor.account(fromToken[inputCurrency]).method(tokenToTokenSwapInputABI);
 
           signingService.request([
             tokenToTokenSwapInput.asClause(
@@ -450,7 +454,9 @@ class Swap extends Component {
       switch (type) {
         case 'ETH_TO_TOKEN':
           const ethToTokenSwapOutputABI = _.find(EXCHANGE_ABI, { name: 'ethToTokenSwapOutput' });
-          const ethToTokenSwapOutput = window.connex.thor.account(fromToken[outputCurrency]).method(ethToTokenSwapOutputABI);
+          const ethToTokenSwapOutput = connex.thor.account(fromToken[outputCurrency]).method(ethToTokenSwapOutputABI);
+
+          ethToTokenSwapOutput.value(BN(inputValue).multipliedBy(10 ** inputDecimals).multipliedBy(1 + ALLOWED_SLIPPAGE).toFixed(0));
 
           signingService.request([
             ethToTokenSwapOutput.asClause(
@@ -464,7 +470,7 @@ class Swap extends Component {
           break;
         case 'TOKEN_TO_ETH':
           const tokenToEthSwapOutputABI = _.find(EXCHANGE_ABI, { name: 'tokenToEthSwapOutput' });
-          const tokenToEthSwapOutput = window.connex.thor.account(fromToken[inputCurrency]).method(tokenToEthSwapOutputABI);
+          const tokenToEthSwapOutput = connex.thor.account(fromToken[inputCurrency]).method(tokenToEthSwapOutputABI);
 
           signingService.request([
             tokenToEthSwapOutput.asClause(
@@ -483,7 +489,7 @@ class Swap extends Component {
           }
 
           const tokenToTokenSwapOutputABI = _.find(EXCHANGE_ABI, { name: 'tokenToTokenSwapOutput' });
-          const tokenToTokenSwapOutput = window.connex.thor.account(fromToken[inputCurrency]).method(tokenToTokenSwapOutputABI);
+          const tokenToTokenSwapOutput = connex.thor.account(fromToken[inputCurrency]).method(tokenToTokenSwapOutputABI);
 
           signingService.request([
             tokenToTokenSwapOutput.asClause(
@@ -762,7 +768,7 @@ export default connect(
     // isConnected: !!state.web3connect.account && state.web3connect.networkId == (process.env. REACT_APP_NETWORK_ID || 74),
     account: state.web3connect.account,
     exchangeAddresses: state.addresses.exchangeAddresses,
-    web3: state.web3connect.web3,
+    connex: state.web3connect.connex,
   }),
   dispatch => ({
     selectors: () => dispatch(selectors()),

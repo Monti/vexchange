@@ -1,11 +1,11 @@
-export default function promisify(web3, methodName, ...args) {
+export default function promisify(connex, methodName, ...args) {
   return new Promise((resolve, reject) => {
-    if (!web3) {
+    if (!connex) {
       reject(new Error('No Web3 object'));
       return;
     }
 
-    const method = web3.eth[methodName];
+    const method = connex.eth[methodName];
 
     if (!method) {
       reject(new Error(`Cannot find web3.eth.${methodName}`));

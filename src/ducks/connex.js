@@ -1,9 +1,5 @@
-import { thorify } from 'thorify'
-import { extend } from 'thorify/dist/extend';
-import * as Arkane from '@arkane-network/arkane-connect';
 import { BigNumber as BN } from 'bignumber.js';
 import { hexToNumberString } from 'web3-utils';
-
 import { watchBalance } from './web3connect';
 
 import {
@@ -13,38 +9,21 @@ import {
   UPDATE_ETH_BALANCE,
  } from './creators'
 
-const Web3 = require("web3");
-
 const Balance = (value, label = '', decimals = 0) => ({
   value: BN(value),
   label: label.toUpperCase(),
   decimals: +decimals,
 });
 
-if (process.env.REACT_APP_NETWORK === 'testnet') {
-  window.arkaneConnect = new Arkane.ArkaneConnect('Arketype', { environment: 'staging' });
-} else {
-  window.arkaneConnect = new Arkane.ArkaneConnect('Vexchange');
-}
-
 const thor = (dispatch, getState) => {
   const { web3connect } = getState();
   const signingService = window.connex.vendor.sign('cert');
-  let web3;
 
   return new Promise(async (resolve, reject) => {
-    if (web3connect.web3) {
-      resolve(web3connect.web3);
+    if (web3connect.connex) {
+      resolve(web3connect.connex);
       return;
     }
-
-    if (process.env.REACT_APP_NETWORK === 'testnet') {
-      web3 = thorify(new Web3(), "http://127.0.0.1:8669/");
-    } else {
-      web3 = thorify(new Web3(), "https://vechain-api.monti.finance");
-    }
-
-    extend(web3);
 
     if (typeof window.connex !== 'undefined') {
       signingService.request({
@@ -61,7 +40,7 @@ const thor = (dispatch, getState) => {
 
           dispatch({
             type: INITIALIZE,
-            payload: web3,
+            payload: window.connex,
           });
           dispatch({ type: UPDATE_WALLET, payload: annex.signer });
           dispatch({ type: UPDATE_ACCOUNT, payload: annex.signer });
@@ -76,7 +55,7 @@ const thor = (dispatch, getState) => {
           });
         });
 
-        resolve();
+        resolve(window.connex);
 
       }).catch(error => {
         console.error('User denied access.');

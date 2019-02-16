@@ -75,6 +75,7 @@ class Header extends Component {
   }
 
   render() {
+    console.log(this.props)
     return (
       <div className="header">
         <BlockingWarning {...this.props} />
@@ -104,7 +105,7 @@ export default connect(
     currentAddress: state.web3connect.account,
     initialized: state.web3connect.initialized,
     isConnected: !!window.connex,
-    web3: state.web3connect.web3,
-    provider: state.web3connect.provider,
+    connex: state.web3connect.connex,
+    networkId: state.web3connect.networkId,
   }),
 )(Header);
