@@ -88,7 +88,7 @@ const Balance = (value, label = '', decimals = 0) => ({
   decimals: +decimals,
 });
 
-export const initialize = (initializer) => async (dispatch, getState) => {
+export const initialize = () => async (dispatch, getState) => {
   return connex(dispatch, getState);
 };
 
@@ -217,9 +217,6 @@ export const sync = () => async (dispatch, getState) => {
       }
 
       const contract = contracts[tokenAddress] || await connex.thor.account(tokenAddress).getCode();
-
-      // const contract = contracts[tokenAddress] || new web3.eth.Contract(ERC20_ABI, tokenAddress);
-      // const contractBytes32 = contracts[tokenAddress] || new web3.eth.Contract(ERC20_WITH_BYTES_ABI, tokenAddress);
 
       if (!contracts[tokenAddress]) {
         dispatch({

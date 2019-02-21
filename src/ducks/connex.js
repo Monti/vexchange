@@ -15,9 +15,8 @@ const Balance = (value, label = '', decimals = 0) => ({
   decimals: +decimals,
 });
 
-const thor = (dispatch, getState) => {
+const connex = (dispatch, getState) => {
   const { connexConnect } = getState();
-  const signingService = window.connex.vendor.sign('cert');
 
   return new Promise(async (resolve, reject) => {
     if (connexConnect.connex) {
@@ -26,7 +25,8 @@ const thor = (dispatch, getState) => {
     }
 
     if (typeof window.connex !== 'undefined') {
-      signingService.request({
+      console.log('hit')
+      window.connex.vendor.sign('cert').request({
         purpose: 'identification',
         payload: {
           type: 'text',
@@ -53,10 +53,10 @@ const thor = (dispatch, getState) => {
               balanceOf: annex.signer,
             },
           });
+
+          resolve(window.connex);
+          return;
         });
-
-        resolve(window.connex);
-
       }).catch(error => {
         console.error('User denied access.');
         dispatch({ type: INITIALIZE });
@@ -67,4 +67,4 @@ const thor = (dispatch, getState) => {
   })
 };
 
-export default thor;
+export default connex;
