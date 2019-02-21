@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import ProviderModal from './components/ProviderModal';
 import WebFont from 'webfontloader';
 import './i18n';
 import App from './pages/App';
@@ -22,9 +21,7 @@ WebFont.load({
 window.addEventListener('load', function () {
   ReactDOM.render(
     <Provider store={store}>
-      <ProviderModal render={provider => (
-        <App provider={provider} />
-      )} />
+      <App />
     </Provider>, document.getElementById('root')
   );
 });

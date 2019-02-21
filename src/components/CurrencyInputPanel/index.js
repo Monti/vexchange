@@ -263,8 +263,6 @@ class CurrencyInputPanel extends Component {
       addPendingTx,
     } = this.props;
 
-    const signingService = connex.vendor.sign('tx')
-
     if (disableUnlock || !selectedTokenAddress || selectedTokenAddress === 'VET') {
       return;
     }
@@ -296,6 +294,7 @@ class CurrencyInputPanel extends Component {
       <button
         className='currency-input-panel__sub-currency-select'
         onClick={async () => {
+          const signingService = connex.vendor.sign('tx')
           const approveABI = _.find(ERC20_ABI, { name: 'approve' });
           const approve = connex.thor.account(selectedTokenAddress).method(approveABI);
 
@@ -428,8 +427,6 @@ export default withRouter(
       transactions: state.connexConnect.transactions,
       connex: state.connexConnect.connex,
       pendingApprovals: state.pending.approvals,
-      wallet: state.connexConnect.wallet,
-      provider: state.connexConnect.provider,
     }),
     dispatch => ({
       selectors: () => dispatch(selectors()),

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { BrowserRouter, Redirect, Route } from 'react-router-dom';
 import { hexToBytes } from 'web3-utils';
+import { isEqual } from 'lodash';
 import MediaQuery from 'react-responsive';
 import { AnimatedSwitch } from 'react-router-transition';
 import { ConnexConnect, startWatching, initialize } from '../ducks/connexConnect';
@@ -22,11 +23,13 @@ class App extends Component {
   }
 
   componentWillReceiveProps({ connex }) {
-    connex.thor.block(0).get().then(block => {
-      const networkId = hexToBytes(block.id);
-      setAddresses(networkId);
-      this.hasSetNetworkId = true;
-    });
+    if (connex && isEqual(this.props.connex, connex)) {
+      connex.thor.block(0).get().then(block => {
+        const networkId = hexToBytes(block.id);
+        setAddresses(networkId);
+        this.hasSetNetworkId = true;
+      });
+    }
   }
 
   render() {

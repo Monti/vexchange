@@ -25,7 +25,6 @@ const connex = (dispatch, getState) => {
     }
 
     if (typeof window.connex !== 'undefined') {
-      console.log('hit')
       window.connex.vendor.sign('cert').request({
         purpose: 'identification',
         payload: {
@@ -63,6 +62,9 @@ const connex = (dispatch, getState) => {
         reject();
         return;
       });
+    } else {
+      dispatch({ type: INITIALIZE });
+      reject();
     }
   })
 };

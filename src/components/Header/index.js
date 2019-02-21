@@ -3,9 +3,8 @@ import MediaQuery from 'react-responsive';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
-import { Button } from 'antd';
 import CometLogo from '../../assets/images/comet.png';
-import AkraneLogo from '../../assets/images/arkane.svg';
+import SyncLogo from '../../assets/images/sync.svg';
 import Status from '../Status';
 
 import "./header.scss";
@@ -45,29 +44,11 @@ class BlockingWarning extends Component {
       content = [
         <div key="warning-title">No Vechain wallet found</div>,
         <div key="warning-desc" className="header__dialog__description">
-          <MediaQuery query="(min-width: 768px)">
-            {(matches) => {
-              if (matches) {
-                return 'Please visit us after installing Comet or Arkane Network.';
-              } else {
-                return 'Unfortunately Comet does not work on mobile. If you would like to use Vexchange on mobile please use Arkane or visit Vexchange on a desktop computer.';
-              }
-            }}
-          </MediaQuery>
+          Please visit us after installing Comet or Sync.
         </div>,
         <div key="warning-logos" className="header__download">
-          <MediaQuery query="(min-width: 768px)">
-            {(matches) => {
-              if (matches) {
-                return [
-                  <img src={CometLogo} key="comet" onClick={() => window.open(getCometLinks(), '_blank')} />,
-                  <img src={AkraneLogo} key="arkane" onClick={() => window.open(getSyncLinks(), '_blank')} />
-                ]
-              } else {
-                return <img src={AkraneLogo} onClick={() => window.open(getSyncLinks(), '_blank')} />
-              }
-            }}
-          </MediaQuery>
+          <img src={CometLogo} key="comet" onClick={() => window.open(getCometLinks(), '_blank')} />
+          <img src={SyncLogo} key="sync" onClick={() => window.open(getSyncLinks(), '_blank')} />
         </div>,
       ];
     }
@@ -100,7 +81,10 @@ class Header extends Component {
           })}
         >
           <div className="header__center-group">
-            <span className="header__title">VEXCHANGE</span>
+            <span className={classnames('header__title', {
+              'header--mainnet': this.props.networkId === 74,
+              'header--testnet': this.props.networkId === 39,
+            })}>VEXCHANGE</span>
           </div>
           <Status isConnected />
         </div>
@@ -110,7 +94,6 @@ class Header extends Component {
 }
 
 Header.propTypes = {
-  provider: PropTypes.string,
   currentAddress: PropTypes.string,
   isConnected: PropTypes.bool.isRequired,
 };

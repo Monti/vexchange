@@ -44,15 +44,12 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "start:testnet": "REACT_APP_NETWORK_ID=39 REACT_APP_NETWORK='testnet' react-scripts start",
     "build": "react-scripts build && cp build/index.html build/404.html",
-    "build:testnet": "REACT_APP_NETWORK_ID=39 REACT_APP_NETWORK='testnet' react-scripts build && cp build/index.html build/404.html",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "deploy": "npm run build&&gh-pages -d build"
   },
   "devDependencies": {
-    "@arkane-network/arkane-connect": "^1.1.2",
     "gh-pages": "^1.1.0"
   },
   "browserslist": [
