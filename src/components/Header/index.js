@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
+import MediaQuery from 'react-responsive';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
 import { Button } from 'antd';
 import CometLogo from '../../assets/images/comet.png';
 import AkraneLogo from '../../assets/images/arkane.svg';
-import Web3Status from '../Web3Status';
+import Status from '../Status';
 
 import "./header.scss";
 
@@ -33,25 +34,40 @@ class BlockingWarning extends Component {
 
   render () {
     const {
+      connex,
       isConnected,
       initialized,
     } = this.props;
 
     let content = [];
 
-    if (!window.connex && initialized) {
+    if (!connex && initialized) {
       content = [
         <div key="warning-title">No Vechain wallet found</div>,
         <div key="warning-desc" className="header__dialog__description">
-          Please visit us after installing Comet or Sync
+          <MediaQuery query="(min-width: 768px)">
+            {(matches) => {
+              if (matches) {
+                return 'Please visit us after installing Comet or Arkane Network.';
+              } else {
+                return 'Unfortunately Comet does not work on mobile. If you would like to use Vexchange on mobile please use Arkane or visit Vexchange on a desktop computer.';
+              }
+            }}
+          </MediaQuery>
         </div>,
         <div key="warning-logos" className="header__download">
-          {(
-            [
-              <img src={CometLogo} key="comet" onClick={() => window.open(getCometLinks(), '_blank')} />,
-              <img src={AkraneLogo} key="sync" onClick={() => window.open(getSyncLinks(), '_blank')} />
-            ]
-          )}
+          <MediaQuery query="(min-width: 768px)">
+            {(matches) => {
+              if (matches) {
+                return [
+                  <img src={CometLogo} key="comet" onClick={() => window.open(getCometLinks(), '_blank')} />,
+                  <img src={AkraneLogo} key="arkane" onClick={() => window.open(getSyncLinks(), '_blank')} />
+                ]
+              } else {
+                return <img src={AkraneLogo} onClick={() => window.open(getSyncLinks(), '_blank')} />
+              }
+            }}
+          </MediaQuery>
         </div>,
       ];
     }
@@ -75,7 +91,6 @@ class Header extends Component {
   }
 
   render() {
-    console.log(this.props)
     return (
       <div className="header">
         <BlockingWarning {...this.props} />
@@ -87,7 +102,7 @@ class Header extends Component {
           <div className="header__center-group">
             <span className="header__title">VEXCHANGE</span>
           </div>
-          <Web3Status isConnected />
+          <Status isConnected />
         </div>
       </div>
     );
@@ -102,10 +117,10 @@ Header.propTypes = {
 
 export default connect(
   state => ({
-    currentAddress: state.web3connect.account,
-    initialized: state.web3connect.initialized,
-    isConnected: !!window.connex,
-    connex: state.web3connect.connex,
-    networkId: state.web3connect.networkId,
+    currentAddress: state.connexConnect.account,
+    initialized: state.connexConnect.initialized,
+    isConnected: !!state.connexConnect.account,
+    connex: state.connexConnect.connex,
+    networkId: state.connexConnect.networkId,
   }),
 )(Header);

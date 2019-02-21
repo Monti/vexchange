@@ -6,7 +6,7 @@ import {BigNumber as BN} from "bignumber.js";
 import MediaQuery from 'react-responsive';
 import _ from 'lodash';
 import { withNamespaces } from 'react-i18next';
-import { selectors, addPendingTx } from '../../ducks/web3connect';
+import { selectors, addPendingTx } from '../../ducks/connexConnect';
 import Header from '../../components/Header';
 import NavigationTabs from '../../components/NavigationTabs';
 import CurrencyInputPanel from '../../components/CurrencyInputPanel';
@@ -385,9 +385,7 @@ class Swap extends Component {
 
     try {
       deadline = await retry(() => getBlockDeadline(connex, 300));
-      console.log(deadline)
     } catch(e) {
-      console.log(e)
       return;
     }
 
@@ -396,7 +394,7 @@ class Swap extends Component {
       switch(type) {
         case 'ETH_TO_TOKEN':
           const ethToTokenSwapInputABI = _.find(EXCHANGE_ABI, { name: 'ethToTokenSwapInput' });
-          const ethToTokenSwapInput = window.connex.thor.account(fromToken[outputCurrency]).method(ethToTokenSwapInputABI);
+          const ethToTokenSwapInput = connex.thor.account(fromToken[outputCurrency]).method(ethToTokenSwapInputABI);
 
           ethToTokenSwapInput.value(BN(inputValue).multipliedBy(10 ** 18).toFixed(0));
 
@@ -405,8 +403,8 @@ class Swap extends Component {
               BN(outputValue).multipliedBy(10 ** outputDecimals).multipliedBy(1 - ALLOWED_SLIPPAGE).toFixed(0),
               deadline,
             )
-          ]).then(data => {
-            addPendingTx(data.txid);
+          ]).then(({ txid }) => {
+            addPendingTx(txid);
             this.reset();
           }).catch(error => {
             console.log(error);
@@ -548,7 +546,8 @@ class Swap extends Component {
 
     return (
       <ContextualInfo
-        openModalText={t("transactionDetails")}
+        openDetailsText={t("transactionDetails")}
+        closeDetailsText={t("hideDetails")}
         contextualInfo={contextualInfo}
         isError={isError}
         renderTransactionDetails={this.renderTransactionDetails}
@@ -763,12 +762,11 @@ class Swap extends Component {
 
 export default connect(
   state => ({
-    balances: state.web3connect.balances,
-    isConnected: !!window.connex,
-    // isConnected: !!state.web3connect.account && state.web3connect.networkId == (process.env. REACT_APP_NETWORK_ID || 74),
-    account: state.web3connect.account,
+    balances: state.connexConnect.balances,
+    isConnected: !!state.connexConnect.account,
+    account: state.connexConnect.account,
     exchangeAddresses: state.addresses.exchangeAddresses,
-    connex: state.web3connect.connex,
+    connex: state.connexConnect.connex,
   }),
   dispatch => ({
     selectors: () => dispatch(selectors()),

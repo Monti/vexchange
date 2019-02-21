@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { BigNumber as BN } from 'bignumber.js';
-import { hexToNumberString, hexToBytes } from 'web3-utils';
+import { hexToNumberString, hexToBytes, isAddress } from 'web3-utils';
 import _ from 'lodash';
 import initialState from './initialState';
 import ERC20_ABI from "../abi/erc20";
@@ -31,7 +31,7 @@ import connex from './connex';
 
 // selectors
 export const selectors = () => (dispatch, getState) => {
-  const state = getState().web3connect;
+  const state = getState().connexConnect;
 
   const getTokenBalance = (tokenAddress, address) => {
     const tokenBalances = state.balances[tokenAddress] || {};
@@ -97,8 +97,8 @@ export const watchBalance = ({ balanceOf, tokenAddress }) => (dispatch, getState
     return;
   }
 
-  const { web3connect } = getState();
-  const { watched } = web3connect;
+  const { connexConnect } = getState();
+  const { watched } = connexConnect;
 
   if (!tokenAddress) {
     if (watched.balances.vechain.includes(balanceOf)) {
@@ -125,7 +125,7 @@ export const watchBalance = ({ balanceOf, tokenAddress }) => (dispatch, getState
 };
 
 export const watchApprovals = ({ tokenAddress, tokenOwner, spender }) => (dispatch, getState) => {
-  const { web3connect: { watched } } = getState();
+  const { connexConnect: { watched } } = getState();
   const token = watched.approvals[tokenAddress] || {};
   const owner = token[tokenOwner] || [];
   if (owner.includes(spender)) {
@@ -171,7 +171,7 @@ export const sync = () => async (dispatch, getState) => {
     contracts,
     networkId,
     transactions: { pending, confirmed },
-  } = getState().web3connect;
+  } = getState().connexConnect;
 
   if (!networkId) {
     const block = await connex.thor.block(0).get();
@@ -186,7 +186,6 @@ export const sync = () => async (dispatch, getState) => {
   // Sync VeChain Balances
   watched.balances.vechain.forEach(async address => {
     const acc = connex.thor.account(address);
-
     const info = await acc.get().then(info => info);
     const balance = hexToNumberString(info.balance);
 
@@ -207,11 +206,17 @@ export const sync = () => async (dispatch, getState) => {
 
   // Sync Token Balances
   Object.keys(watched.balances)
-    .forEach(tokenAddress => {
+    .forEach(async tokenAddress => {
 
       if (tokenAddress === 'vechain') {
         return;
       }
+
+      if (!isAddress(tokenAddress)) {
+        return;
+      }
+
+      const contract = contracts[tokenAddress] || await connex.thor.account(tokenAddress).getCode();
 
       // const contract = contracts[tokenAddress] || new web3.eth.Contract(ERC20_ABI, tokenAddress);
       // const contractBytes32 = contracts[tokenAddress] || new web3.eth.Contract(ERC20_WITH_BYTES_ABI, tokenAddress);
@@ -221,7 +226,7 @@ export const sync = () => async (dispatch, getState) => {
           type: ADD_CONTRACT,
           payload: {
             address: tokenAddress,
-            // contract: contract,
+            contract: contract,
           },
         });
       }
@@ -232,19 +237,19 @@ export const sync = () => async (dispatch, getState) => {
         let symbol = tokenBalance.symbol;
 
         const balanceOfABI = _.find(ERC20_ABI, { name: 'balanceOf' });
-        const balance = window.connex.thor.account(tokenAddress).method(balanceOfABI).call(address);
+        const balance = connex.thor.account(tokenAddress).method(balanceOfABI).call(address);
 
         const decimalsABI = _.find(ERC20_ABI, { name: 'decimals' });
-        const decimals = window.connex.thor.account(tokenAddress).method(decimalsABI).call();
+        const decimals = tokenBalance.decimals || connex.thor.account(tokenAddress).method(decimalsABI).call();
 
         const symbolABI = _.find(ERC20_ABI, { name: 'symbol' });
         const bytes32SymbolABI = _.find(ERC20_WITH_BYTES_ABI, { name: 'symbol' });
 
         try {
-          symbol = symbol || window.connex.thor.account(tokenAddress).method(symbolABI).call();
+          symbol = symbol || connex.thor.account(tokenAddress).method(symbolABI).call();
         } catch (e) {
           try {
-            symbol = symbol || window.connex.thor.account(tokenAddress).method(bytes32SymbolABI).call();
+            symbol = symbol || connex.thor.account(tokenAddress).method(bytes32SymbolABI).call();
           } catch (err) {
             console.log(err)
           }
@@ -255,18 +260,20 @@ export const sync = () => async (dispatch, getState) => {
         }
 
         Promise.all([balance, symbol, decimals]).then(data => {
-          const balance = data[0].decoded.balance;
-          const symbol = data[1].decoded['0'];
-          const decimals = data[2].decoded['0'];
-
-          dispatch({
-            type: UPDATE_TOKEN_BALANCE,
-            payload: {
-              tokenAddress,
-              balanceOf: address,
-              balance: Balance(balance, symbol, decimals),
-            },
-          });
+          if (data[0].decoded && data[1].decoded && data[2].decoded) {
+            dispatch({
+              type: UPDATE_TOKEN_BALANCE,
+              payload: {
+                tokenAddress,
+                balanceOf: address,
+                balance: Balance(
+                  data[0].decoded['0'],
+                  data[1].decoded['0'],
+                  data[2].decoded['0'] 
+                ),
+              },
+            });
+          }
         })
       });
     });
@@ -274,9 +281,6 @@ export const sync = () => async (dispatch, getState) => {
   // Update Approvals
   Object.entries(watched.approvals)
     .forEach(([tokenAddress, token]) => {
-      // const contract = contracts[tokenAddress] || new web3.eth.Contract(ERC20_ABI, tokenAddress);
-      // const contractBytes32 = contracts[tokenAddress] || new web3.eth.Contract(ERC20_WITH_BYTES_ABI, tokenAddress);
-
       Object.entries(token)
         .forEach(([ tokenOwnerAddress, tokenOwner ]) => {
           tokenOwner.forEach(async spenderAddress => {
@@ -310,14 +314,16 @@ export const sync = () => async (dispatch, getState) => {
             }
 
             Promise.all([balance, symbol, decimals]).then(data => {
-              const balance = data[0].decoded['0'];
-
-              if (_.isObject(data[1]) && _.isObject(data[2])) {
+              if (data[0].decoded && data[1].decoded && data[2].decoded) {
                 dispatch(updateApprovals({
                   tokenAddress,
                   tokenOwner: tokenOwnerAddress,
                   spender: spenderAddress,
-                  balance: Balance(balance, data[1].decoded['0'], data[2].decoded['0']),
+                  balance: Balance(
+                    data[0].decoded['0'],
+                    data[1].decoded['0'],
+                    data[2].decoded['0']
+                  ),
                 }));
               }
             });
@@ -359,7 +365,7 @@ export const sync = () => async (dispatch, getState) => {
 };
 
 export const startWatching = () => async (dispatch, getState) => {
-  const { account } = getState().web3connect;
+  const { account } = getState().connexConnect;
   const timeout = !account
     ? 1000
     : 5000;
@@ -368,7 +374,7 @@ export const startWatching = () => async (dispatch, getState) => {
   setTimeout(() => dispatch(startWatching()), timeout);
 };
 
-export default function web3connectReducer(state = initialState, { type, payload }) {
+export default function connexConnectReducer(state = initialState, { type, payload }) {
   switch (type) {
     case INITIALIZE:
       return {
@@ -508,7 +514,7 @@ export default function web3connectReducer(state = initialState, { type, payload
 }
 
 // Connect Component
-export class _Web3Connect extends Component {
+export class _connexConnect extends Component {
   static propTypes = {
     initialize: PropTypes.func.isRequired,
   };
@@ -527,12 +533,12 @@ export class _Web3Connect extends Component {
   }
 }
 
-export const Web3Connect = connect(
-  ({ web3connect }) => ({
-    connex: web3connect.connex,
+export const ConnexConnect = connect(
+  ({ connexConnect }) => ({
+    connex: connexConnect.connex,
   }),
   dispatch => ({
     initialize: () => dispatch(initialize()),
     startWatching: () => dispatch(startWatching()),
   }),
-)(_Web3Connect);
+)(_connexConnect);

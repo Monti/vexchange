@@ -1,6 +1,6 @@
 import { BigNumber as BN } from 'bignumber.js';
 import { hexToNumberString } from 'web3-utils';
-import { watchBalance } from './web3connect';
+import { watchBalance } from './connexConnect';
 
 import {
   INITIALIZE,
@@ -16,12 +16,12 @@ const Balance = (value, label = '', decimals = 0) => ({
 });
 
 const thor = (dispatch, getState) => {
-  const { web3connect } = getState();
+  const { connexConnect } = getState();
   const signingService = window.connex.vendor.sign('cert');
 
   return new Promise(async (resolve, reject) => {
-    if (web3connect.connex) {
-      resolve(web3connect.connex);
+    if (connexConnect.connex) {
+      resolve(connexConnect.connex);
       return;
     }
 

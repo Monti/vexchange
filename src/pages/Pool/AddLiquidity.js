@@ -3,11 +3,12 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import classnames from "classnames";
 import { withNamespaces } from 'react-i18next';
+import _ from 'lodash';
 import CurrencyInputPanel from '../../components/CurrencyInputPanel';
 import OversizedPanel from '../../components/OversizedPanel';
 import ContextualInfo from '../../components/ContextualInfo';
 import NavigationTabs from '../../components/NavigationTabs';
-import { selectors, addPendingTx } from '../../ducks/web3connect';
+import { selectors, addPendingTx } from '../../ducks/connexConnect';
 import PlusBlue from '../../assets/images/plus-blue.svg';
 import PlusGrey from '../../assets/images/plus-grey.svg';
 import { getBlockDeadline } from '../../helpers/web3-utils';
@@ -49,14 +50,14 @@ class AddLiquidity extends Component {
   };
 
   shouldComponentUpdate(nextProps, nextState) {
-    const { t, isConnected, account, exchangeAddresses, balances, web3 } = this.props;
+    const { t, isConnected, account, exchangeAddresses, balances, connex } = this.props;
     const { inputValue, outputValue, inputCurrency, outputCurrency, lastEditedField } = this.state;
 
     return isConnected !== nextProps.isConnected ||
       t != nextProps.t ||
       account !== nextProps.account ||
       exchangeAddresses !== nextProps.exchangeAddresses ||
-      web3 !== nextProps.web3 ||
+      connex !== nextProps.connex ||
       balances !== nextProps.balances ||
       inputValue !== nextState.inputValue ||
       outputValue !== nextState.outputValue ||
@@ -77,23 +78,28 @@ class AddLiquidity extends Component {
       lastEditedField,
       totalSupply: oldTotalSupply,
     } = this.state;
-    const { exchangeAddresses: { fromToken }, web3 } = this.props;
+    const { exchangeAddresses: { fromToken }, connex } = this.props;
     const exchangeAddress = fromToken[outputCurrency];
     const exchangeRate = this.getExchangeRate();
     const append = {};
 
-    if (!outputCurrency || this.isNewExchange() || !web3) {
+    if (!outputCurrency || this.isNewExchange()) {
       return;
     }
 
-    const exchange = new web3.eth.Contract(EXCHANGE_ABI, exchangeAddress);
-    const totalSupply = await exchange.methods.totalSupply().call();
-    const platFormFee = await exchange.methods.platform_fee().call();
+    const totalSupplyABI = _.find(EXCHANGE_ABI, { name: 'totalSupply' });
+    const totalSupply = connex.thor.account(exchangeAddress).method(totalSupplyABI);
 
-    append.platFormFee = platFormFee;
+    const platFormFeeABI = _.find(EXCHANGE_ABI, { name: 'totalSupply' });
+    const platFormFee = connex.thor.account(exchangeAddress).method(platFormFeeABI);
 
-    if (!oldTotalSupply.isEqualTo(BN(totalSupply))) {
-      append.totalSupply = BN(totalSupply);
+    const getTotalSupply = await totalSupply.call();
+    const getPlatFormFee = await platFormFee.call();
+
+    append.platFormFee = getPlatFormFee;
+
+    if (!oldTotalSupply.isEqualTo(BN(getTotalSupply))) {
+      append.totalSupply = BN(getTotalSupply);
     }
 
     if (lastEditedField === INPUT) {
@@ -152,25 +158,24 @@ class AddLiquidity extends Component {
 
   onAddLiquidity = async () => {
     const {
-      account,
-      web3,
+      connex,
       exchangeAddresses: { fromToken },
       selectors,
-      provider,
-      wallet,
     } = this.props;
     const { inputValue, outputValue, outputCurrency } = this.state;
-    const exchange = new web3.eth.Contract(EXCHANGE_ABI, fromToken[outputCurrency]);
+    const totalSupplyABI = _.find(EXCHANGE_ABI, { name: 'totalSupply' });
+    const totalSupply = connex.thor.account(fromToken[outputCurrency]).method(totalSupplyABI);
+    const signingService = connex.vendor.sign('tx')
 
     const ethAmount = BN(inputValue).multipliedBy(10 ** 18);
     const { decimals } = selectors().getTokenBalance(outputCurrency, fromToken[outputCurrency]);
     const tokenAmount = BN(outputValue).multipliedBy(10 ** decimals);
     const { value: ethReserve } = selectors().getBalance(fromToken[outputCurrency]);
-    const totalLiquidity = await exchange.methods.totalSupply().call();
+    const totalLiquidity = await totalSupply.call();
     const liquidityMinted = BN(totalLiquidity).multipliedBy(ethAmount.dividedBy(ethReserve));
     let deadline;
     try {
-      deadline = await retry(() => getBlockDeadline(web3, 300));
+      deadline = await retry(() => getBlockDeadline(connex, 300));
     } catch(e) {
       console.log(e)
       // TODO: Handle error.
@@ -181,45 +186,19 @@ class AddLiquidity extends Component {
     const minLiquidity = this.isNewExchange() ? BN(0) : liquidityMinted.multipliedBy(1 - MAX_LIQUIDITY_SLIPPAGE);
     const maxTokens = this.isNewExchange() ? tokenAmount : tokenAmount.multipliedBy(1 + MAX_LIQUIDITY_SLIPPAGE);
 
-    const { addLiquidity } = exchange.methods;
-    const fn = addLiquidity(minLiquidity.toFixed(0), maxTokens.toFixed(0), deadline);
+    const addLiquidityABI = _.find(EXCHANGE_ABI, { name: 'addLiquidity' });
+    const addLiquidity = connex.thor.account(fromToken[outputCurrency]).method(addLiquidityABI);
 
-    if (provider === 'arkane') {
-      const signer = window.arkaneConnect.createSigner();
+    addLiquidity.value(ethAmount.toFixed(0));
 
-      signer.executeNativeTransaction({
-        type: 'VET_TRANSACTION',
-         walletId: wallet.id,
-        clauses: [{
-          to: fromToken[outputCurrency],
-          amount: ethAmount.toFixed(0),
-          data: fn.encodeABI(),
-        }]
-      }).then(({ result }) => {
-        this.reset();
-        this.props.addPendingTx(result.transactionHash);
-      }).catch(reason => {
-        console.log(reason);
-      })
-
-      return;
-    }
-
-    try {
-      fn.send({
-        from: account,
-        value: ethAmount.toFixed(0),
-        gas: await fn.estimateGas({
-          from: account,
-          value: ethAmount.toFixed(0),
-        }),
-      }, (err, data) => {
-        this.reset();
-        this.props.addPendingTx(data);
-      });
-    } catch (err) {
-      console.error(err);
-    }
+    signingService.request([
+      addLiquidity.asClause(
+        minLiquidity.toFixed(0), maxTokens.toFixed(0), deadline
+      ),
+    ]).then(( {txid }) => {
+      addPendingTx(txid);
+      this.reset();
+    });
   };
 
   onInputChange = value => {
@@ -463,7 +442,8 @@ class AddLiquidity extends Component {
     return (
       <ContextualInfo
         key="context-info"
-        openModalText={t("transactionDetails")}
+        openDetailsText={t("transactionDetails")}
+        closeDetailsText={t("hideDetails")}
         contextualInfo={contextualInfo}
         isError={isError}
         renderTransactionDetails={this.renderTransactionDetails}
@@ -487,10 +467,10 @@ class AddLiquidity extends Component {
     if (this.isNewExchange()) {
       return (
         <div>
-          <div className="pool__summary-item">You are adding {b(`${inputValue} VET`)} and {b(`${outputValue} ${label}`)} to the liquidity pool.</div>
-          <div className="pool__summary-item">You are setting the initial exchange rate to {b(`1 VET = ${BN(outputValue).dividedBy(inputValue).toFixed(4)} ${label}`)}.</div>
-          <div className="pool__summary-item">You will mint {b(`${inputValue} liquidity tokens`)}.</div>
-          <div className="pool__summary-item">Current total supply of liquidity tokens is 0.</div>
+          <div className="pool__summary-item">{t("youAreAdding")} {b(`${inputValue} VET`)} {t("and")} {b(`${outputValue} ${label}`)} {t("intoPool")}</div>
+          <div className="pool__summary-item">{t("youAreSettingExRate")} {b(`1 VET = ${BN(outputValue).dividedBy(inputValue).toFixed(4)} ${label}`)}.</div>
+          <div className="pool__summary-item">{t("youWillMint")} {b(`${inputValue}`)} {t("liquidityTokens")}</div>
+          <div className="pool__summary-item">{t("totalSupplyIs0")}</div>
         </div>
       );
     }
@@ -618,13 +598,11 @@ class AddLiquidity extends Component {
 
 export default connect(
   state => ({
-    isConnected: !!window.connex,
-    account: state.web3connect.account,
-    balances: state.web3connect.balances,
-    web3: state.web3connect.web3,
+    isConnected: !!state.connexConnect.account,
+    account: state.connexConnect.account,
+    balances: state.connexConnect.balances,
+    connex: state.connexConnect.connex,
     exchangeAddresses: state.addresses.exchangeAddresses,
-    provider: state.web3connect.provider,
-    wallet: state.web3connect.wallet,
   }),
   dispatch => ({
     selectors: () => dispatch(selectors()),

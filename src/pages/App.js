@@ -4,7 +4,7 @@ import { BrowserRouter, Redirect, Route } from 'react-router-dom';
 import { hexToBytes } from 'web3-utils';
 import MediaQuery from 'react-responsive';
 import { AnimatedSwitch } from 'react-router-transition';
-import { Web3Connect, startWatching, initialize } from '../ducks/web3connect';
+import { ConnexConnect, startWatching, initialize } from '../ducks/connexConnect';
 import { setAddresses } from '../ducks/addresses';
 import Header from '../components/Header';
 import TosModal from '../components/TosModal';
@@ -41,7 +41,7 @@ class App extends Component {
           <Header />
         </MediaQuery>
 
-        <Web3Connect />
+        <ConnexConnect />
 
         <BrowserRouter>
           <>
@@ -73,9 +73,9 @@ class App extends Component {
 
 export default connect(
   (state, props) => ({
-    account: state.web3connect.account,
-    initialized: state.web3connect.initialized,
-    connex: state.web3connect.connex,
+    account: state.connexConnect.account,
+    initialized: state.connexConnect.initialized,
+    connex: state.connexConnect.connex,
   }),
   dispatch => ({
     setAddresses: networkId => dispatch(setAddresses(networkId)),

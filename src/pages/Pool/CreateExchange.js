@@ -3,7 +3,10 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 import { withNamespaces } from 'react-i18next';
-import {selectors, addPendingTx} from "../../ducks/web3connect";
+import _ from 'lodash';
+import { isAddress } from 'web3-utils';
+
+import {selectors, addPendingTx} from "../../ducks/connexConnect";
 import classnames from "classnames";
 import NavigationTabs from "../../components/NavigationTabs";
 import ModeSelector from "./ModeSelector";
@@ -40,7 +43,7 @@ class CreateExchange extends Component {
     const { tokenAddress } = this.state;
     const {
       t,
-      web3,
+      connex,
       account,
       selectors,
       factoryAddress,
@@ -57,7 +60,7 @@ class CreateExchange extends Component {
       };
     }
 
-    if (web3 && web3.utils && !web3.utils.isAddress(tokenAddress)) {
+    if (!isAddress(tokenAddress)) {
       return {
         isValid: false,
         errorMessage: t("invalidTokenAddress"),
@@ -65,15 +68,18 @@ class CreateExchange extends Component {
     }
 
     const { label, decimals } = selectors().getBalance(account, tokenAddress);
-    const factory = new web3.eth.Contract(FACTORY_ABI, factoryAddress);
+    const getExchangeABI = _.find(FACTORY_ABI, { name: 'getExchange' });
+    const getExchange = connex.thor.account(factoryAddress).method(getExchangeABI);
     const exchangeAddress = fromToken[tokenAddress];
-
+    
     if (!exchangeAddress) {
-      factory.methods.getExchange(tokenAddress).call((err, data) => {
-        if (!err && data !== '0x0000000000000000000000000000000000000000') {
+      getExchange.call(tokenAddress).then(data => {
+        if (data !== '0x0000000000000000000000000000000000000000') {
           addExchange({ label, tokenAddress, exchangeAddress: data });
         }
-      });
+      }).catch(err => {
+        console.log(err);
+      })
     } else {
       errorMessage = t("exchangeExists", { label });
     }
@@ -93,8 +99,8 @@ class CreateExchange extends Component {
   }
 
   onChange = tokenAddress => {
-    const { selectors, account, web3 } = this.props;
-    if (web3 && web3.utils && web3.utils.isAddress(tokenAddress)) {
+    const { selectors, account } = this.props;
+    if (isAddress(tokenAddress)) {
       const { label, decimals } = selectors().getBalance(account, tokenAddress);
       this.setState({
         label,
@@ -112,30 +118,28 @@ class CreateExchange extends Component {
 
   onCreateExchange = async () => {
     const { tokenAddress } = this.state;
-    const { account, web3, factoryAddress, wallet, provider } = this.props;
+    const { connex, factoryAddress } = this.props;
+    const signingService = connex.vendor.sign('tx')
 
-    if (web3 && web3.utils && !web3.utils.isAddress(tokenAddress)) {
+    if (isAddress(tokenAddress)) {
       return;
     }
 
-    const factory = new web3.eth.Contract(FACTORY_ABI, factoryAddress);
-    const fn = factory.methods.createExchange(tokenAddress);
+    const createExchangeABI = _.find(FACTORY_ABI, { name: 'createExchange' });
+    const createExchange = connex.thor.account(factoryAddress).method(createExchangeABI);
 
-    fn.send({
-      from: account,
-      gas: await fn.estimateGas({
-        from: account,
-      })
-    }, (err, data) => {
-      if (!err) {
-        this.setState({
-          label: '',
-          decimals: 0,
-          tokenAddress: '',
-        });
-        this.props.addPendingTx(data);
-      }
-    })
+    signingService.request([
+      createExchange.asClause(tokenAddress),
+    ]).then(({ txid }) => {
+      this.setState({
+        label: '',
+        decimals: 0,
+        tokenAddress: '',
+      });
+      addPendingTx(txid);
+    }).catch(error => {
+      console.log(error);
+    });
   };
 
   renderSummary() {
@@ -224,16 +228,12 @@ class CreateExchange extends Component {
 export default withRouter(
   connect(
     state => ({
-      isConnected: !!window.connex,
-      // isConnected: Boolean(state.web3connect.account) && state.web3connect.networkId == (process.env.REACT_APP_NETWORK_ID|| 74),
-      account: state.web3connect.account,
-      balances: state.web3connect.balances,
-      web3: state.web3connect.web3,
+      isConnected: !!state.connexConnect.account,
+      account: state.connexConnect.account,
+      balances: state.connexConnect.balances,
+      connex: state.connexConnect.connex,
       exchangeAddresses: state.addresses.exchangeAddresses,
       factoryAddress: state.addresses.factoryAddress,
-      arkaneConnect: state.web3connect.arkaneConnect,
-      provider: state.web3connect.provider,
-      wallet: state.web3connect.wallet,
     }),
     dispatch => ({
       selectors: () => dispatch(selectors()),

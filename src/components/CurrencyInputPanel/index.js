@@ -11,7 +11,7 @@ import Fuse from '../../helpers/fuse';
 import Modal from '../Modal';
 import TokenLogo from '../TokenLogo';
 import SearchIcon from '../../assets/images/magnifying-glass.svg';
-import { selectors, addPendingTx } from "../../ducks/web3connect";
+import { selectors, addPendingTx } from "../../ducks/connexConnect";
 import { addApprovalTx } from "../../ducks/pending";
 import { addExchange } from "../../ducks/addresses";
 import { BigNumber as BN } from 'bignumber.js';
@@ -37,7 +37,6 @@ const FUSE_OPTIONS = {
 
 const TOKEN_ADDRESS_TO_LABEL = { VET: 'VET' };
 
-const signingService = window.connex.vendor.sign('tx')
 class CurrencyInputPanel extends Component {
   static propTypes = {
     title: PropTypes.string,
@@ -112,7 +111,7 @@ class CurrencyInputPanel extends Component {
       t,
       selectedTokens,
       disableTokenSelect,
-      web3,
+      connex,
       selectors,
       account,
       factoryAddress,
@@ -135,7 +134,7 @@ class CurrencyInputPanel extends Component {
       const { label } = selectors().getBalance(account, tokenAddress);
 
       const getExchangeABI = _.find(FACTORY_ABI, { name: 'getExchange' });
-      const getExchange = window.connex.thor.account(factoryAddress).method(getExchangeABI);
+      const getExchange = connex.thor.account(factoryAddress).method(getExchangeABI);
       const exchangeAddress = fromToken[tokenAddress];
 
       if (!exchangeAddress) {
@@ -251,6 +250,7 @@ class CurrencyInputPanel extends Component {
   renderUnlockButton() {
     const {
       t,
+      connex,
       selectors,
       selectedTokenAddress,
       account,
@@ -262,6 +262,8 @@ class CurrencyInputPanel extends Component {
       addApprovalTx,
       addPendingTx,
     } = this.props;
+
+    const signingService = connex.vendor.sign('tx')
 
     if (disableUnlock || !selectedTokenAddress || selectedTokenAddress === 'VET') {
       return;
@@ -295,7 +297,7 @@ class CurrencyInputPanel extends Component {
         className='currency-input-panel__sub-currency-select'
         onClick={async () => {
           const approveABI = _.find(ERC20_ABI, { name: 'approve' });
-          const approve = window.connex.thor.account(selectedTokenAddress).method(approveABI);
+          const approve = connex.thor.account(selectedTokenAddress).method(approveABI);
 
           signingService.request([
             approve.asClause(
@@ -421,13 +423,13 @@ export default withRouter(
       exchangeAddresses: state.addresses.exchangeAddresses,
       tokenAddresses: state.addresses.tokenAddresses,
       contracts: state.contracts,
-      account: state.web3connect.account,
-      approvals: state.web3connect.approvals,
-      transactions: state.web3connect.transactions,
-      web3: state.web3connect.web3,
+      account: state.connexConnect.account,
+      approvals: state.connexConnect.approvals,
+      transactions: state.connexConnect.transactions,
+      connex: state.connexConnect.connex,
       pendingApprovals: state.pending.approvals,
-      wallet: state.web3connect.wallet,
-      provider: state.web3connect.provider,
+      wallet: state.connexConnect.wallet,
+      provider: state.connexConnect.provider,
     }),
     dispatch => ({
       selectors: () => dispatch(selectors()),

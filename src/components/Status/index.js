@@ -4,11 +4,11 @@ import { connect } from 'react-redux';
 import classnames from 'classnames';
 import { isHexStrict, toChecksumAddress } from 'web3-utils';
 import { Button } from 'antd';
-import { startWatching } from '../../ducks/web3connect';
+import { startWatching } from '../../ducks/connexConnect';
 import { CSSTransitionGroup } from "react-transition-group";
 import { withNamespaces } from 'react-i18next';
 import { picasso } from '@vechain/picasso'
-import './web3-status.scss';
+import './status.scss';
 
 import Modal from '../Modal';
 
@@ -16,7 +16,7 @@ function getVeforgeLink(tx) {
   return `https://explore.veforge.com/transactions/${tx}`;
 }
 
-class Web3Status extends Component {
+class Status extends Component {
   constructor(props) {
     super(props);
 
@@ -108,7 +108,6 @@ class Web3Status extends Component {
           />
           {this.renderModal()}
         </div>
-
       </Button>
     );
   }
@@ -132,26 +131,25 @@ function getText(text, disconnectedText) {
   return `${address.substring(0, 6)}...${address.substring(38)}`;
 }
 
-Web3Status.propTypes = {
+Status.propTypes = {
   isConnected: PropTypes.bool,
   address: PropTypes.string,
 };
 
-Web3Status.defaultProps = {
+Status.defaultProps = {
   isConnected: false,
   address: 'Disconnected',
 };
 
 export default connect(
   state => ({
-    address: state.web3connect.account,
-    isConnected: !!window.connex,
-    // isConnected: !!(state.web3connect.web3 && state.web3connect.account),
-    pending: state.web3connect.transactions.pending,
-    confirmed: state.web3connect.transactions.confirmed,
-    networkId: state.web3connect.networkId,
+    address: state.connexConnect.account,
+    isConnected: !!(state.connexConnect.connex && state.connexConnect.account),
+    pending: state.connexConnect.transactions.pending,
+    confirmed: state.connexConnect.transactions.confirmed,
+    networkId: state.connexConnect.networkId,
   }),
   dispatch => ({
     startWatching: () => dispatch(startWatching()),
   }),
-)(withNamespaces()(Web3Status));
+)(withNamespaces()(Status));

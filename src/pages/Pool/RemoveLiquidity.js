@@ -2,12 +2,13 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classnames from "classnames";
 import { connect } from 'react-redux';
+import _ from 'lodash';
 import { BigNumber as BN } from 'bignumber.js';
 import { withNamespaces } from 'react-i18next';
 import NavigationTabs from "../../components/NavigationTabs";
 import ModeSelector from "./ModeSelector";
 import CurrencyInputPanel from "../../components/CurrencyInputPanel";
-import { selectors, addPendingTx } from '../../ducks/web3connect';
+import { selectors, addPendingTx } from '../../ducks/connexConnect';
 import ContextualInfo from "../../components/ContextualInfo";
 import OversizedPanel from "../../components/OversizedPanel";
 import ArrowDownBlue from "../../assets/images/arrow-down-blue.svg";
@@ -20,7 +21,7 @@ class RemoveLiquidity extends Component {
   static propTypes = {
     account: PropTypes.string,
     balances: PropTypes.object,
-    web3: PropTypes.object,
+    connex: PropTypes.object,
     exchangeAddresses: PropTypes.shape({
       fromToken: PropTypes.object.isRequired,
     }).isRequired,
@@ -40,10 +41,10 @@ class RemoveLiquidity extends Component {
 
   validate() {
     const { tokenAddress, value } = this.state;
-    const { t, account, selectors, exchangeAddresses: { fromToken }, web3 } = this.props;
+    const { t, account, selectors, exchangeAddresses: { fromToken } } = this.props;
     const exchangeAddress = fromToken[tokenAddress];
 
-    if (!web3 || !exchangeAddress || !account || !value) {
+    if (!exchangeAddress || !account || !value) {
       return {
         isValid: false,
       };
@@ -63,19 +64,20 @@ class RemoveLiquidity extends Component {
   }
 
   onTokenSelect = async tokenAddress => {
-    const { exchangeAddresses: { fromToken }, web3 } = this.props;
+    const { exchangeAddresses: { fromToken }, connex } = this.props;
     const exchangeAddress = fromToken[tokenAddress];
     this.setState({ tokenAddress });
 
-    if (!web3 || !exchangeAddress) {
+    if (!exchangeAddress) {
       return;
     }
 
-    const exchange = new web3.eth.Contract(EXCHANGE_ABI, exchangeAddress);
+    const totalSupplyABI = _.find(EXCHANGE_ABI, { name: 'totalSupplyABI' });
+    const totalSupply = connex.thor.account(exchangeAddress).method(totalSupplyABI);
+    const getTotalSupply = await totalSupply.call();
 
-    const totalSupply = await exchange.methods.totalSupply().call();
     this.setState({
-      totalSupply: BN(totalSupply),
+      totalSupply: BN(getTotalSupply),
     });
   };
 
@@ -87,18 +89,17 @@ class RemoveLiquidity extends Component {
     const { tokenAddress, value: input, totalSupply } = this.state;
     const {
       exchangeAddresses: { fromToken },
-      web3,
+      connex,
       selectors,
       account,
-      wallet,
-      provider,
     } = this.props;
     const exchangeAddress = fromToken[tokenAddress];
     const { getBalance } = selectors();
-    if (!web3 || !exchangeAddress) {
+    if (!exchangeAddress) {
       return;
     }
-    const exchange = new web3.eth.Contract(EXCHANGE_ABI, exchangeAddress);
+    const signingService = connex.vendor.sign('tx')
+
     const SLIPPAGE = .25;
     const { decimals } = getBalance(account, exchangeAddress);
     const { value: ethReserve } = getBalance(exchangeAddress);
@@ -110,50 +111,27 @@ class RemoveLiquidity extends Component {
     const tokenWithdrawn = tokenReserve.multipliedBy(ownership);
     let deadline;
     try {
-      deadline = await retry(() => getBlockDeadline(web3, 300));
+      deadline = await retry(() => getBlockDeadline(connex, 300));
     } catch(e) {
       // TODO: Handle error.
       return;
     }
 
-    const fn = exchange.methods.removeLiquidity(
-      amount.toFixed(0),
-      ethWithdrawn.multipliedBy(1 - SLIPPAGE).toFixed(0),
-      tokenWithdrawn.multipliedBy(1 - SLIPPAGE).toFixed(0),
-      deadline,
-    );
+    const removeLiquidityABI = _.find(EXCHANGE_ABI, { name: 'removeLiquidityABI' });
+    const removeLiquidity = connex.thor.account(exchangeAddress).method(removeLiquidityABI);
 
-    if (provider === 'arkane') {
-      const signer = window.arkaneConnect.createSigner();
-
-      signer.executeNativeTransaction({
-        type: 'VET_TRANSACTION',
-         walletId: wallet.id,
-        clauses: [{
-          amount: 0,
-          to: exchangeAddress,
-          data: fn.encodeABI(),
-        }]
-      }).then(({ result }) => {
-        this.reset();
-        this.props.addPendingTx(result.transactionHash);
-      }).catch(reason => {
-        console.log(reason);
-      })
-
-      return;
-    }
-
-    fn.send({
-      from: account,
-      gas: await fn.estimateGas({
-        from: account,
-      })
-    }, (err, data) => {
-      if (data) {
-        this.reset();
-        this.props.addPendingTx(data);
-      }
+    signingService.request([
+      removeLiquidity.asClause(
+        amount.toFixed(0),
+        ethWithdrawn.multipliedBy(1 - SLIPPAGE).toFixed(0),
+        tokenWithdrawn.multipliedBy(1 - SLIPPAGE).toFixed(0),
+        deadline,
+      )
+    ]).then(({ txid }) => {
+      addPendingTx(txid);
+      this.reset();
+    }).catch(error => {
+      console.log(error);
     });
   };
 
@@ -161,13 +139,13 @@ class RemoveLiquidity extends Component {
     const {
       exchangeAddresses: { fromToken },
       account,
-      web3,
+      connex,
       selectors,
     } = this.props;
 
     const { tokenAddress } = this.state;
 
-    if (!web3) {
+    if (!connex) {
       return '';
     }
 
@@ -208,7 +186,8 @@ class RemoveLiquidity extends Component {
     return (
       <ContextualInfo
         key="context-info"
-        openModalText={t("transactionDetails")}
+        openDetailsText={t("transactionDetails")}
+        closeDetailsText={t("hideDetails")}
         contextualInfo={contextualInfo}
         isError={isError}
         renderTransactionDetails={this.renderTransactionDetails}
@@ -221,7 +200,7 @@ class RemoveLiquidity extends Component {
     const {
       t,
       exchangeAddresses: { fromToken },
-      web3,
+      connex,
       selectors,
       account,
     } = this.props;
@@ -263,7 +242,7 @@ class RemoveLiquidity extends Component {
       t,
       exchangeAddresses: { fromToken },
       account,
-      web3,
+      connex,
       selectors,
     } = this.props;
     const { getBalance } = selectors();
@@ -300,7 +279,7 @@ class RemoveLiquidity extends Component {
     ];
 
     const exchangeAddress = fromToken[tokenAddress];
-    if (!exchangeAddress || !web3) {
+    if (!exchangeAddress || !connex) {
       return blank;
     }
 
@@ -419,13 +398,11 @@ class RemoveLiquidity extends Component {
 
 export default connect(
   state => ({
-    isConnected: Boolean(state.web3connect.account) && state.web3connect.networkId == (process.env.REACT_APP_NETWORK_ID || 74),
-    web3: state.web3connect.web3,
-    balances: state.web3connect.balances,
-    account: state.web3connect.account,
+    isConnected: !!state.connexConnect.account,
+    connex: state.connexConnect.connex,
+    balances: state.connexConnect.balances,
+    account: state.connexConnect.account,
     exchangeAddresses: state.addresses.exchangeAddresses,
-    wallet: state.web3connect.wallet,
-    provider: state.web3connect.provider,
   }),
   dispatch => ({
     selectors: () => dispatch(selectors()),

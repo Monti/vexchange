@@ -4,15 +4,15 @@ import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import {BigNumber as BN} from "bignumber.js";
 import { withNamespaces } from 'react-i18next';
-import { selectors, addPendingTx } from '../../ducks/web3connect';
+import { isAddress } from 'web3-utils';
+import _ from 'lodash';
+import { selectors, addPendingTx } from '../../ducks/connexConnect';
 import Header from '../../components/Header';
 import NavigationTabs from '../../components/NavigationTabs';
 import AddressInputPanel from '../../components/AddressInputPanel';
 import CurrencyInputPanel from '../../components/CurrencyInputPanel';
 import ContextualInfo from '../../components/ContextualInfo';
 import OversizedPanel from '../../components/OversizedPanel';
-import DropdownBlue from "../../assets/images/dropdown-blue.svg";
-import DropupBlue from "../../assets/images/dropup-blue.svg";
 import ArrowDownBlue from '../../assets/images/arrow-down-blue.svg';
 import ArrowDownGrey from '../../assets/images/arrow-down-grey.svg';
 import { getBlockDeadline } from '../../helpers/web3-utils';
@@ -30,7 +30,7 @@ class Send extends Component {
     account: PropTypes.string,
     isConnected: PropTypes.bool.isRequired,
     selectors: PropTypes.func.isRequired,
-    web3: PropTypes.object,
+    connex: PropTypes.object,
   };
 
   state = {
@@ -62,7 +62,7 @@ class Send extends Component {
   }
 
   validate() {
-    const { selectors, account, web3 } = this.props;
+    const { selectors, account, connex } = this.props;
     const {
       inputValue, outputValue,
       inputCurrency, outputCurrency,
@@ -73,7 +73,7 @@ class Send extends Component {
     let outputError = '';
     let isValid = true;
     let extraFee = false;
-    const validRecipientAddress = web3 && web3.utils.isAddress(recipient);
+    const validRecipientAddress = isAddress(recipient);
     const inputIsZero = BN(inputValue).isZero();
     const outputIsZero = BN(outputValue).isZero();
 
@@ -369,11 +369,9 @@ class Send extends Component {
     const {
       exchangeAddresses: { fromToken },
       account,
-      web3,
+      connex,
       selectors,
       addPendingTx,
-      wallet,
-      provider,
     } = this.props;
     const {
       inputValue,
@@ -386,15 +384,16 @@ class Send extends Component {
     } = this.state;
     const ALLOWED_SLIPPAGE = 0.025;
     const TOKEN_ALLOWED_SLIPPAGE = 0.04;
+    const signingService = connex.vendor.sign('tx')
 
     const type = getSendType(inputCurrency, outputCurrency);
     const { decimals: inputDecimals } = selectors().getBalance(account, inputCurrency);
     const { decimals: outputDecimals } = selectors().getBalance(account, outputCurrency);
     let deadline;
+
     try {
-      deadline = await retry(() => getBlockDeadline(web3, 300));
+      deadline = await retry(() => getBlockDeadline(connex, 300));
     } catch(e) {
-      // TODO: Handle error.
       return;
     }
 
@@ -402,134 +401,62 @@ class Send extends Component {
       // send input
       switch(type) {
         case 'ETH_TO_TOKEN':
-          const { ethToTokenTransferInput} = new web3.eth.Contract(EXCHANGE_ABI, fromToken[outputCurrency]).methods;
+          const ethToTokenTransferInputABI = _.find(EXCHANGE_ABI, { name: 'ethToTokenTransferInput' });
+          const ethToTokenTransferInput = connex.thor.account(fromToken[outputCurrency]).method(ethToTokenTransferInputABI);
 
-          const ethToToken = ethToTokenTransferInput(
-            BN(outputValue).multipliedBy(10 ** outputDecimals).multipliedBy(1 - ALLOWED_SLIPPAGE).toFixed(0),
-            deadline,
-            recipient,
-          );
+          ethToTokenTransferInput.value(BN(inputValue).multipliedBy(10 ** 18).toFixed(0));
 
-          if (provider === 'arkane') {
-            const signer = window.arkaneConnect.createSigner();
-
-            signer.executeNativeTransaction({
-              type: 'VET_TRANSACTION',
-               walletId: wallet.id,
-              clauses: [{
-                to: fromToken[outputCurrency],
-                amount: BN(inputValue).multipliedBy(10 ** 18).toFixed(0),
-                data: ethToToken.encodeABI(),
-              }]
-            }).then(({ result }) => {
-              addPendingTx(result.transactionHash);
-              this.reset();
-            }).catch(reason => {
-              console.log(reason);
-            })
-
-            return;
-          }
-
-          ethToToken.send({
-            gas: await ethToToken.estimateGas({
-              from: account,
-              value: BN(inputValue).multipliedBy(10 ** 18).toFixed(0),
-            }),
-            from: account,
-            value: BN(inputValue).multipliedBy(10 ** 18).toFixed(0),
-          }, (err, data) => {
-            if (!err) {
-              addPendingTx(data);
-              this.reset();
-            }
+          signingService.request([
+            ethToTokenTransferInput.asClause(
+              BN(outputValue).multipliedBy(10 ** outputDecimals).multipliedBy(1 - ALLOWED_SLIPPAGE).toFixed(0),
+              deadline,
+              recipient,
+            )
+          ]).then(data => {
+            addPendingTx(data.txid);
+            this.reset();
+          }).catch(error => {
+            console.log(error);
           });
         break;
         case 'TOKEN_TO_ETH':
-          const { tokenToEthTransferInput } = new web3.eth.Contract(EXCHANGE_ABI, fromToken[inputCurrency]).methods;
+          const tokenToEthTransferInputABI = _.find(EXCHANGE_ABI, { name: 'tokenToEthTransferInput' });
+          const tokenToEthTransferInput = connex.thor.account(fromToken[inputCurrency]).method(tokenToEthTransferInputABI);
 
-          const tokenToEth = tokenToEthTransferInput(
-            BN(inputValue).multipliedBy(10 ** inputDecimals).toFixed(0),
-            BN(outputValue).multipliedBy(10 ** outputDecimals).multipliedBy(1 - ALLOWED_SLIPPAGE).toFixed(0),
-            deadline,
-            recipient,
-          );
-
-          if (provider === 'arkane') {
-            const signer = window.arkaneConnect.createSigner();
-
-            signer.executeNativeTransaction({
-              type: 'VET_TRANSACTION',
-               walletId: wallet.id,
-              clauses: [{
-                amount: 0,
-                to: fromToken[inputCurrency],
-                data: tokenToEth.encodeABI(),
-              }]
-            }).then(({ result }) => {
-              addPendingTx(result.transactionHash);
-              this.reset();
-            }).catch(reason => {
-              console.log(reason);
-            })
-
-            return;
-          }
-
-          tokenToEth.send({
-            from: account,
-            gas: await tokenToEth.estimateGas({
-              from: account,
-            }),
-          }, (err, data) => {
-            if (!err) {
-              addPendingTx(data);
-              this.reset();
-            }
+          signingService.request([
+            tokenToEthTransferInput.asClause(
+              BN(inputValue).multipliedBy(10 ** inputDecimals).toFixed(0),
+              BN(outputValue).multipliedBy(10 ** outputDecimals).multipliedBy(1 - ALLOWED_SLIPPAGE).toFixed(0),
+              deadline,
+              recipient,
+            )
+          ]).then(data => {
+            console.log(data)
+            addPendingTx(data);
+            this.reset();
+          }).catch(error => {
+            console.log(error);
           });
+
         break;
         case 'TOKEN_TO_TOKEN':
-          const { tokenToTokenTransferInput } = new web3.eth.Contract(EXCHANGE_ABI, fromToken[inputCurrency]).methods;
+          const tokenToTokenTransferInputABI = _.find(EXCHANGE_ABI, { name: 'tokenToTokenTransferInput' });
+          const tokenToTokenTransferInput = connex.thor.account(fromToken[inputCurrency]).method(tokenToTokenTransferInputABI);
 
-          const tokenToToken = tokenToTokenTransferInput(
-            BN(inputValue).multipliedBy(10 ** inputDecimals).toFixed(0),
-            BN(outputValue).multipliedBy(10 ** outputDecimals).multipliedBy(1 - TOKEN_ALLOWED_SLIPPAGE).toFixed(0),
-            '1',
-            deadline,
-            recipient,
-            outputCurrency,
-          );
-
-          if (provider === 'arkane') {
-            const signer = window.arkaneConnect.createSigner();
-
-            signer.executeNativeTransaction({
-              type: 'VET_TRANSACTION',
-               walletId: wallet.id,
-              clauses: [{
-                amount: 0,
-                to: fromToken[inputCurrency],
-                data: tokenToToken.encodeABI(),
-              }]
-            }).then(({ result }) => {
-              addPendingTx(result.transactionHash);
-              this.reset();
-            }).catch(reason => {
-              console.log(reason);
-            })
-
-            return;
-          }
-
-          tokenToToken.send({
-            gas: await tokenToToken.estimateGas({
-              from: account,
-            }),
-          }, (err, data) => {
-            if (!err) {
-              addPendingTx(data);
-              this.reset();
-            }
+          signingService.request([
+            tokenToTokenTransferInput.asClause(
+              BN(inputValue).multipliedBy(10 ** inputDecimals).toFixed(0),
+              BN(outputValue).multipliedBy(10 ** outputDecimals).multipliedBy(1 - TOKEN_ALLOWED_SLIPPAGE).toFixed(0),
+              '1',
+              deadline,
+              recipient,
+              outputCurrency,
+            )
+          ]).then(data => {
+            addPendingTx(data);
+            this.reset();
+          }).catch(error => {
+            console.log(error);
           });
         break;
         default:
@@ -541,140 +468,66 @@ class Send extends Component {
       // send output
       switch (type) {
         case 'ETH_TO_TOKEN':
-          const { ethToTokenTransferOutput } = new web3.eth.Contract(EXCHANGE_ABI, fromToken[outputCurrency]).methods;
+          const ethToTokenTransferOutputABI = _.find(EXCHANGE_ABI, { name: 'ethToTokenTransferOutput' });
+          const ethToTokenTransferOutput = connex.thor.account(fromToken[outputCurrency]).method(ethToTokenTransferOutputABI);
 
-          const ethToToken2 = ethToTokenTransferOutput(
-            BN(outputValue).multipliedBy(10 ** outputDecimals).toFixed(0),
-            deadline,
-            recipient,
-          );
+          ethToTokenTransferOutput.value(BN(inputValue).multipliedBy(10 ** inputDecimals).multipliedBy(1 + ALLOWED_SLIPPAGE).toFixed(0));
 
-          if (provider === 'arkane') {
-            const signer = window.arkaneConnect.createSigner();
-
-            signer.executeNativeTransaction({
-              type: 'VET_TRANSACTION',
-               walletId: wallet.id,
-              clauses: [{
-                to: fromToken[outputCurrency],
-                amount: BN(inputValue).multipliedBy(10 ** inputDecimals).multipliedBy(1 + ALLOWED_SLIPPAGE).toFixed(0),
-                data: ethToToken2.encodeABI(),
-              }]
-            }).then(({ result }) => {
-              this.reset();
-              addPendingTx(result.transactionHash);
-            }).catch(reason => {
-              console.log(reason);
-            })
-
-            return;
-          }
-
-          ethToToken2.send({
-            from: account,
-            value: BN(inputValue).multipliedBy(10 ** inputDecimals).multipliedBy(1 + ALLOWED_SLIPPAGE).toFixed(0),
-            gas: await ethToToken2.estimateGas({
-              from: account,
-              value: BN(inputValue).multipliedBy(10 ** inputDecimals).multipliedBy(1 + ALLOWED_SLIPPAGE).toFixed(0),
-            }),
-          }, (err, data) => {
-            if (!err) {
-              addPendingTx(data);
-              this.reset();
-            }
+          signingService.request([
+            ethToTokenTransferOutput.asClause(
+              BN(outputValue).multipliedBy(10 ** outputDecimals).toFixed(0),
+              deadline,
+              recipient,
+            )
+          ]).then(data => {
+            addPendingTx(data);
+            this.reset();
+          }).catch(error => {
+            console.log(error);
           });
         break;
         case 'TOKEN_TO_ETH':
-          const { tokenToEthTransferOutput } = new web3.eth.Contract(EXCHANGE_ABI, fromToken[inputCurrency]).methods;
+          const tokenToEthTransferOutputABI = _.find(EXCHANGE_ABI, { name: 'tokenToEthTransferOutput' });
+          const tokenToEthTransferOutput = connex.thor.account(fromToken[inputCurrency]).method(tokenToEthTransferOutputABI);
 
-          const tokenToEth2 = tokenToEthTransferOutput(
-            BN(outputValue).multipliedBy(10 ** outputDecimals).toFixed(0),
-            BN(inputValue).multipliedBy(10 ** inputDecimals).multipliedBy(1 + ALLOWED_SLIPPAGE).toFixed(0),
-            deadline,
-            recipient,
-          );
-
-          if (provider === 'arkane') {
-            const signer = window.arkaneConnect.createSigner();
-
-            signer.executeNativeTransaction({
-              type: 'VET_TRANSACTION',
-               walletId: wallet.id,
-              clauses: [{
-                amount: 0,
-                to: fromToken[inputCurrency],
-                data: tokenToEth2.encodeABI(),
-              }]
-            }).then(({ result }) => {
-              this.reset();
-              addPendingTx(result.transactionHash);
-            }).catch(reason => {
-              console.log(reason);
-            })
-
-            return;
-          }
-
-          tokenToEth2.send({
-            from: account,
-            gas: await tokenToEth2.estimateGas({
-              from: account,
-            }),
-          }, (err, data) => {
-            if (!err) {
-              addPendingTx(data);
-              this.reset();
-            }
+          signingService.request([
+            tokenToEthTransferOutput(
+              BN(outputValue).multipliedBy(10 ** outputDecimals).toFixed(0),
+              BN(inputValue).multipliedBy(10 ** inputDecimals).multipliedBy(1 + ALLOWED_SLIPPAGE).toFixed(0),
+              deadline,
+              recipient,
+            )
+          ]).then(data => {
+            console.log(data)
+            addPendingTx(data);
+            this.reset();
+          }).catch(error => {
+            console.log(error);
           });
         break;
         case 'TOKEN_TO_TOKEN':
           if (!inputAmountB) {
             return;
           }
+          const tokenToTokenTransferOutputABI = _.find(EXCHANGE_ABI, { name: 'tokenToTokenTransferOutput' });
+          const tokenToTokenTransferOutput = connex.thor.account(fromToken[inputCurrency]).method(tokenToTokenTransferOutputABI);
 
-          const { tokenToTokenTransferOutput } = new web3.eth.Contract(EXCHANGE_ABI, fromToken[inputCurrency]).methods;
-
-          const tokenToToken2 = tokenToTokenTransferOutput(
-            BN(outputValue).multipliedBy(10 ** outputDecimals).toFixed(0),
-            BN(inputValue).multipliedBy(10 ** inputDecimals).multipliedBy(1 + TOKEN_ALLOWED_SLIPPAGE).toFixed(0),
-            inputAmountB.multipliedBy(1.2).toFixed(0),
-            deadline,
-            recipient,
-            outputCurrency,
-          );
-
-          if (provider === 'arkane') {
-            const signer = window.arkaneConnect.createSigner();
-
-            signer.executeNativeTransaction({
-              type: 'VET_TRANSACTION',
-               walletId: wallet.id,
-              clauses: [{
-                amount: 0,
-                to: fromToken[inputCurrency],
-                data: tokenToToken2.encodeABI(),
-              }]
-            }).then(({ result }) => {
-              this.reset();
-              addPendingTx(result.transactionHash);
-            }).catch(reason => {
-              console.log(reason);
-            })
-
-            return;
-          }
-
-          tokenToToken2.send({
-            from: account,
-            gas: await tokenToEth2.estimateGas({
-              from: account,
-            }),
-          }, (err, data) => {
-            if (!err) {
-              addPendingTx(data);
-              this.reset();
-            }
+          signingService.request([
+            tokenToTokenTransferOutput.asClause(
+              BN(outputValue).multipliedBy(10 ** outputDecimals).toFixed(0),
+              BN(inputValue).multipliedBy(10 ** inputDecimals).multipliedBy(1 + TOKEN_ALLOWED_SLIPPAGE).toFixed(0),
+              inputAmountB.multipliedBy(1.2).toFixed(0),
+              deadline,
+              recipient,
+              outputCurrency,
+            )
+          ]).then(data => {
+            addPendingTx(data);
+            this.reset();
+          }).catch(error => {
+            console.log(error);
           });
+
           break;
         default:
           break;
@@ -690,12 +543,12 @@ class Send extends Component {
       outputCurrency,
       recipient,
     } = this.state;
-    const { t, web3 } = this.props;
+    const { t } = this.props;
 
     const { selectors, account } = this.props;
     const { label: inputLabel } = selectors().getBalance(account, inputCurrency);
     const { label: outputLabel } = selectors().getBalance(account, outputCurrency);
-    const validRecipientAddress = web3 && web3.utils.isAddress(recipient);
+    const validRecipientAddress = isAddress(recipient);
     const inputIsZero = BN(inputValue).isZero();
     const outputIsZero = BN(outputValue).isZero();
 
@@ -724,7 +577,8 @@ class Send extends Component {
 
     return (
       <ContextualInfo
-        openModalText={t("transactionDetails")}
+        openDetailsText={t("transactionDetails")}
+        closeDetailsText={t("hideDetails")}
         contextualInfo={contextualInfo}
         isError={isError}
         renderTransactionDetails={this.renderTransactionDetails}
@@ -951,15 +805,11 @@ class Send extends Component {
 
 export default connect(
   state => ({
-    balances: state.web3connect.balances,
-    isConnected: !!window.connex,
-    // isConnected: !!state.web3connect.account && state.web3connect.networkId == (process.env.REACT_APP_NETWORK_ID || 74),
-    account: state.web3connect.account,
-    web3: state.web3connect.web3,
+    balances: state.connexConnect.balances,
+    isConnected: !!state.connexConnect.account,
+    account: state.connexConnect.account,
+    connex: state.connexConnect.connex,
     exchangeAddresses: state.addresses.exchangeAddresses,
-    web3: state.web3connect.web3,
-    wallet: state.web3connect.wallet,
-    provider: state.web3connect.provider,
   }),
   dispatch => ({
     selectors: () => dispatch(selectors()),
