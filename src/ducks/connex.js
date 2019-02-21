@@ -29,7 +29,7 @@ const connex = (dispatch, getState) => {
         purpose: 'identification',
         payload: {
           type: 'text',
-          content: 'random generated string'
+          content: 'Grant Vexchange access?'
         }
       }).then(({ annex }) => {
         const acc = window.connex.thor.account(annex.signer);
