@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import classnames from "classnames";
 import { withNamespaces } from 'react-i18next';
+import ReactGA from "react-ga";
 import CurrencyInputPanel from '../../components/CurrencyInputPanel';
 import OversizedPanel from '../../components/OversizedPanel';
 import ContextualInfo from '../../components/ContextualInfo';
@@ -200,6 +201,10 @@ class AddLiquidity extends Component {
       }).then(({ result }) => {
         this.reset();
         this.props.addPendingTx(result.transactionHash);
+        ReactGA.event({
+          category: 'Pool',
+          action: 'AddLiquidity',
+        });
       }).catch(reason => {
         console.log(reason);
       })
@@ -218,6 +223,10 @@ class AddLiquidity extends Component {
       }, (err, data) => {
         this.reset();
         this.props.addPendingTx(data);
+        ReactGA.event({
+          category: 'Pool',
+          action: 'AddLiquidity',
+        });
       });
     } catch (err) {
       console.error(err);
@@ -482,6 +491,11 @@ class AddLiquidity extends Component {
       outputCurrency,
       totalSupply,
     } = this.state;
+
+    ReactGA.event({
+      category: 'TransactionDetail',
+      action: 'Open',
+    });
 
     const { value: tokenReserve, decimals, label } = selectors().getTokenBalance(outputCurrency, fromToken[outputCurrency]);
     const { value: ethReserve } = selectors().getBalance(fromToken[outputCurrency]);

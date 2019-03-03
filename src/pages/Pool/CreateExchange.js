@@ -11,6 +11,7 @@ import AddressInputPanel from "../../components/AddressInputPanel";
 import OversizedPanel from "../../components/OversizedPanel";
 import FACTORY_ABI from "../../abi/factory";
 import {addExchange} from "../../ducks/addresses";
+import ReactGA from "react-ga";
 
 class CreateExchange extends Component {
   static propTypes = {
@@ -139,6 +140,10 @@ class CreateExchange extends Component {
           tokenAddress: '',
         });
         this.props.addPendingTx(result.transactionHash);
+        ReactGA.event({
+          category: 'Pool',
+          action: 'CreateExchange',
+        });
       }).catch(reason => {
         console.log(reason);
       })
@@ -159,6 +164,10 @@ class CreateExchange extends Component {
           tokenAddress: '',
         });
         this.props.addPendingTx(data);
+        ReactGA.event({
+          category: 'Pool',
+          action: 'CreateExchange',
+        });
       }
     })
   };

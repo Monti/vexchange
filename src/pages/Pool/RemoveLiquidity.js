@@ -15,6 +15,7 @@ import ArrowDownGrey from "../../assets/images/arrow-down-grey.svg";
 import { getBlockDeadline } from '../../helpers/web3-utils';
 import { retry } from '../../helpers/promise-utils';
 import EXCHANGE_ABI from "../../abi/exchange";
+import ReactGA from "react-ga";
 
 class RemoveLiquidity extends Component {
   static propTypes = {
@@ -137,6 +138,10 @@ class RemoveLiquidity extends Component {
       }).then(({ result }) => {
         this.reset();
         this.props.addPendingTx(result.transactionHash);
+        ReactGA.event({
+          category: 'Pool',
+          action: 'RemoveLiquidity',
+        });
       }).catch(reason => {
         console.log(reason);
       })
@@ -153,6 +158,10 @@ class RemoveLiquidity extends Component {
       if (data) {
         this.reset();
         this.props.addPendingTx(data);
+        ReactGA.event({
+          category: 'Pool',
+          action: 'RemoveLiquidity',
+        });
       }
     });
   };
@@ -232,6 +241,11 @@ class RemoveLiquidity extends Component {
     if (!exchangeAddress) {
       return null;
     }
+  
+    ReactGA.event({
+      category: 'TransactionDetail',
+      action: 'Open',
+    });
 
     const SLIPPAGE = 0.025;
     const { value: liquidityBalance, decimals } = getBalance(account, exchangeAddress);

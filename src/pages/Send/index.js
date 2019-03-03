@@ -4,6 +4,8 @@ import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import {BigNumber as BN} from "bignumber.js";
 import { withNamespaces } from 'react-i18next';
+import ReactGA from "react-ga";
+
 import { selectors, addPendingTx } from '../../ducks/web3connect';
 import Header from '../../components/Header';
 import NavigationTabs from '../../components/NavigationTabs';
@@ -42,6 +44,10 @@ class Send extends Component {
     lastEditedField: '',
     recipient: '',
   };
+
+  componentDidMount() {
+    ReactGA.pageview(window.location.pathname + window.location.search);
+  }
 
   shouldComponentUpdate(nextProps, nextState) {
     return true;
@@ -399,6 +405,10 @@ class Send extends Component {
     }
 
     if (lastEditedField === INPUT) {
+      ReactGA.event({
+        category: type,
+        action: 'TransferInput',
+      });
       // send input
       switch(type) {
         case 'ETH_TO_TOKEN':
@@ -538,6 +548,10 @@ class Send extends Component {
     }
 
     if (lastEditedField === OUTPUT) {
+      ReactGA.event({
+        category: type,
+        action: 'TransferOutput',
+      });
       // send output
       switch (type) {
         case 'ETH_TO_TOKEN':
@@ -744,6 +758,11 @@ class Send extends Component {
       lastEditedField,
     } = this.state;
     const { t, selectors, account } = this.props;
+
+    ReactGA.event({
+      category: 'TransactionDetail',
+      action: 'Open',
+    });
 
     const ALLOWED_SLIPPAGE = 0.025;
     const TOKEN_ALLOWED_SLIPPAGE = 0.04;

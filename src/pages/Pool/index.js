@@ -8,6 +8,9 @@ import "./pool.scss";
 import MediaQuery from "react-responsive";
 
 class Pool extends Component {
+  componentDidMount() {
+    ReactGA.pageview(window.location.pathname + window.location.search);
+  }
   render() {
     return (
       <div className="pool">

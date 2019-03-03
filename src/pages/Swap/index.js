@@ -5,6 +5,8 @@ import classnames from 'classnames';
 import {BigNumber as BN} from "bignumber.js";
 import MediaQuery from 'react-responsive';
 import { withNamespaces } from 'react-i18next';
+import ReactGA from 'react-ga';
+
 import { selectors, addPendingTx } from '../../ducks/web3connect';
 import Header from '../../components/Header';
 import NavigationTabs from '../../components/NavigationTabs';
@@ -41,6 +43,10 @@ class Swap extends Component {
     inputAmountB: '',
     lastEditedField: '',
   };
+
+  componentDidMount() {
+    ReactGA.pageview(window.location.pathname + window.location.search);
+  }
 
   reset() {
     this.setState({
@@ -392,6 +398,10 @@ class Swap extends Component {
 
     if (lastEditedField === INPUT) {
       // swap input
+      ReactGA.event({
+        category: type,
+        action: 'SwapInput',
+      });
       switch(type) {
         case 'ETH_TO_TOKEN':
           const { ethToTokenSwapInput } = new web3.eth.Contract(EXCHANGE_ABI, fromToken[outputCurrency]).methods;
@@ -527,6 +537,10 @@ class Swap extends Component {
 
     if (lastEditedField === OUTPUT) {
       // swap output
+      ReactGA.event({
+        category: type,
+        action: 'SwapOutput',
+      });
       switch (type) {
         case 'ETH_TO_TOKEN':
           const { ethToTokenSwapOutput } = new web3.eth.Contract(EXCHANGE_ABI, fromToken[outputCurrency]).methods;
@@ -723,6 +737,10 @@ class Swap extends Component {
       lastEditedField,
     } = this.state;
     const { t, selectors, account } = this.props;
+    ReactGA.event({
+      category: 'TransactionDetail',
+      action: 'Open',
+    });
     const ALLOWED_SLIPPAGE = 0.025;
     const TOKEN_ALLOWED_SLIPPAGE = 0.04;
 
