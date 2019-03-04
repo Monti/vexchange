@@ -189,7 +189,7 @@ class Swap extends Component {
     const exchangeFeeA = await exchangeA.methods.swap_fee().call();
     const exchangeFeeB = await exchangeB.methods.swap_fee().call();
 
-    this.state.exchangeFee = exchangeFeeA + (1 * (10000 - exchangeFeeA) / 10000) * exchangeFeeB; // Compound interest rate
+    this.state.exchangeFee = (exchangeFeeA + exchangeFeeB) / 2; // Average rate, as function gets called twice
 
     const { value: inputReserveA, decimals: inputDecimalsA } = selectors().getBalance(exchangeAddressA, inputCurrency);
     const { value: outputReserveA }= selectors().getBalance(exchangeAddressA, 'VET');
