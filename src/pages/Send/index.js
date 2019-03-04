@@ -191,12 +191,12 @@ class Send extends Component {
     const exchangeAddressA = fromToken[inputCurrency];
     const exchangeAddressB = fromToken[outputCurrency];
 
-    this.state.exchangeFee = (exchangeFeeA + exchangeFeeB) / 2; // Average fee between both markets
-
     const exchangeA = new web3.eth.Contract(EXCHANGE_ABI, exchangeAddressA);
     const exchangeB = new web3.eth.Contract(EXCHANGE_ABI, exchangeAddressB);
     const exchangeFeeA = await exchangeA.methods.swap_fee().call();
     const exchangeFeeB = await exchangeB.methods.swap_fee().call();
+
+    this.state.exchangeFee = (exchangeFeeA + exchangeFeeB) / 2; // Average fee between both markets
 
     const { value: inputReserveA, decimals: inputDecimalsA } = selectors().getBalance(exchangeAddressA, inputCurrency);
     const { value: outputReserveA }= selectors().getBalance(exchangeAddressA, 'VET');
