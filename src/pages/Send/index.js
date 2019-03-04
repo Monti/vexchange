@@ -43,6 +43,7 @@ class Send extends Component {
     inputAmountB: '',
     lastEditedField: '',
     recipient: '',
+    exchangeFee: 0,
   };
 
   componentDidMount() {
@@ -174,6 +175,7 @@ class Send extends Component {
     const {
       exchangeAddresses: { fromToken },
       selectors,
+      web3,
     } = this.props;
 
     const {
@@ -292,6 +294,7 @@ class Send extends Component {
     const {
       exchangeAddresses: { fromToken },
       selectors,
+      web3,
     } = this.props;
 
     const {

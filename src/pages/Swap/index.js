@@ -42,6 +42,7 @@ class Swap extends Component {
     outputCurrency: '',
     inputAmountB: '',
     lastEditedField: '',
+    exchangeFee: '',
   };
 
   componentDidMount() {
@@ -62,7 +63,7 @@ class Swap extends Component {
   }
 
   validate() {
-    const { selectors, account } = this.props;
+    const { selectors, account, web3 } = this.props;
     const {
       inputValue, outputValue,
       inputCurrency, outputCurrency,
@@ -167,6 +168,7 @@ class Swap extends Component {
     const {
       exchangeAddresses: { fromToken },
       selectors,
+      web3,
     } = this.props;
 
     const {
@@ -285,6 +287,7 @@ class Swap extends Component {
     const {
       exchangeAddresses: { fromToken },
       selectors,
+      web3
     } = this.props;
 
     const {
