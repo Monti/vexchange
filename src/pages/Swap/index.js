@@ -134,7 +134,7 @@ class Swap extends Component {
     return false;
   }
 
-  recalcForm() {
+  recalcForm = () => {
     const { inputCurrency, outputCurrency, lastEditedField } = this.state;
 
     if (!inputCurrency || !outputCurrency) {
@@ -163,7 +163,7 @@ class Swap extends Component {
     this.recalcEthTokenForm();
   }
 
-  recalcTokenTokenForm = () => {
+  recalcTokenTokenForm = async () => {
     const {
       exchangeAddresses: { fromToken },
       selectors,
@@ -281,7 +281,7 @@ class Swap extends Component {
 
   };
 
-  recalcEthTokenForm = () => {
+  recalcEthTokenForm = async () => {
     const {
       exchangeAddresses: { fromToken },
       selectors,

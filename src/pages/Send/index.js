@@ -141,7 +141,7 @@ class Send extends Component {
     return false;
   }
 
-  recalcForm() {
+  recalcForm = () => {
     const { inputCurrency, outputCurrency, lastEditedField } = this.state;
 
     if (!inputCurrency || !outputCurrency) {
@@ -170,7 +170,7 @@ class Send extends Component {
     this.recalcEthTokenForm();
   }
 
-  recalcTokenTokenForm = () => {
+  recalcTokenTokenForm = async () => {
     const {
       exchangeAddresses: { fromToken },
       selectors,
@@ -288,7 +288,7 @@ class Send extends Component {
 
   };
 
-  recalcEthTokenForm = () => {
+  recalcEthTokenForm = async () => {
     const {
       exchangeAddresses: { fromToken },
       selectors,
