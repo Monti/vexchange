@@ -912,7 +912,7 @@ class Send extends Component {
           />
 
           <Alert
-            message="Do not send your coins from Vexchange to an exchange. Some exchanges do not support receiving coins from a smart contract."
+            message="Do not send your coins from Vexchange directly to an exchange. Some exchanges do not support receiving coins from a smart contract."
             type="warning"
             closable
           />
