@@ -191,7 +191,7 @@ class Send extends Component {
     const exchangeAddressA = fromToken[inputCurrency];
     const exchangeAddressB = fromToken[outputCurrency];
 
-    this.state.exchangeFee = exchangeFeeA + (1 * (10000 - exchangeFeeA) / 10000) * exchangeFeeB; // Compound interest rate
+    this.state.exchangeFee = (exchangeFeeA + exchangeFeeB) / 2; // Average fee between both markets
 
     const exchangeA = new web3.eth.Contract(EXCHANGE_ABI, exchangeAddressA);
     const exchangeB = new web3.eth.Contract(EXCHANGE_ABI, exchangeAddressB);
