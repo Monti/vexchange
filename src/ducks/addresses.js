@@ -28,7 +28,7 @@ const TESTNET = {
 };
 
 const MAIN = {
-  factoryAddress: '0x343c948A8B0571242669F2DAA6552Cbc152Dc5D5',
+  factoryAddress: '0x6A662F91E14312a11a2E35b359427AEf798fD928',
   exchangeAddresses: {
     addresses: [
       ['VTHO', '0xf9F99f982f3Ea9020f0A0afd4D4679dFEe1B63cf'],
