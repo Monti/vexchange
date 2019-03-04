@@ -176,7 +176,7 @@ class Swap extends Component {
       outputCurrency,
       lastEditedField,
       exchangeRate: oldExchangeRate,
-      inputAmountB: oldInputAmountB,
+      inputAmountB: oldInputAmountB,      
     } = this.state;
 
     const exchangeAddressA = fromToken[inputCurrency];
@@ -294,7 +294,6 @@ class Swap extends Component {
       outputCurrency,
       lastEditedField,
       exchangeRate: oldExchangeRate,
-      exchangeFee,
     } = this.state;
 
     const tokenAddress = [inputCurrency, outputCurrency].filter(currency => currency !== 'VET')[0];

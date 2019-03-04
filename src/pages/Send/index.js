@@ -189,6 +189,13 @@ class Send extends Component {
     const exchangeAddressA = fromToken[inputCurrency];
     const exchangeAddressB = fromToken[outputCurrency];
 
+    this.state.exchangeFee = exchangeFeeA + (1 * (10000 - exchangeFeeA) / 10000) * exchangeFeeB; // Compound interest rate
+
+    const exchangeA = new web3.eth.Contract(EXCHANGE_ABI, exchangeAddressA);
+    const exchangeB = new web3.eth.Contract(EXCHANGE_ABI, exchangeAddressB);
+    const exchangeFeeA = await exchangeA.methods.swap_fee().call();
+    const exchangeFeeB = await exchangeB.methods.swap_fee().call();
+
     const { value: inputReserveA, decimals: inputDecimalsA } = selectors().getBalance(exchangeAddressA, inputCurrency);
     const { value: outputReserveA }= selectors().getBalance(exchangeAddressA, 'VET');
     const { value: inputReserveB } = selectors().getBalance(exchangeAddressB, 'VET');
@@ -303,6 +310,11 @@ class Send extends Component {
     }
     const { value: inputReserve, decimals: inputDecimals } = selectors().getBalance(exchangeAddress, inputCurrency);
     const { value: outputReserve, decimals: outputDecimals }= selectors().getBalance(exchangeAddress, outputCurrency);
+
+    const exchange = new web3.eth.Contract(EXCHANGE_ABI, exchangeAddress);
+    const exchangeFee = await exchange.methods.swap_fee().call();
+
+    this.state.exchangeFee = exchangeFee;
 
     if (lastEditedField === INPUT) {
       if (!oldInputValue) {
@@ -997,8 +1009,8 @@ function calculateEtherTokenOutput({ inputAmount: rawInput, inputReserve: rawRes
     console.warn(`inputAmount is only ${inputAmount.toFixed(0)}. Did you forget to multiply by 10 ** decimals?`);
   }
 
-  const numerator = inputAmount.multipliedBy(outputReserve).multipliedBy(997);
-  const denominator = inputReserve.multipliedBy(1000).plus(inputAmount.multipliedBy(997));
+  const numerator = inputAmount.multipliedBy(outputReserve).multipliedBy(10000 - this.state.exchangeFee);
+  const denominator = inputReserve.multipliedBy(10000).plus(inputAmount.multipliedBy(10000 - this.state.exchangeFee));
 
   return numerator.dividedBy(denominator);
 }
@@ -1012,8 +1024,8 @@ function calculateEtherTokenInput({ outputAmount: rawOutput, inputReserve: rawRe
     console.warn(`inputAmount is only ${outputAmount.toFixed(0)}. Did you forget to multiply by 10 ** decimals?`);
   }
 
-  const numerator = outputAmount.multipliedBy(inputReserve).multipliedBy(1000);
-  const denominator = outputReserve.minus(outputAmount).multipliedBy(997);
+  const numerator = outputAmount.multipliedBy(inputReserve).multipliedBy(10000);
+  const denominator = outputReserve.minus(outputAmount).multipliedBy(10000 - this.state.exchangeFee);
   return (numerator.dividedBy(denominator)).plus(1);
 }
 
