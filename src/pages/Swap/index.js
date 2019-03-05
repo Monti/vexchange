@@ -189,7 +189,7 @@ class Swap extends Component {
     const exchangeFeeA = await exchangeA.methods.swap_fee().call();
     const exchangeFeeB = await exchangeB.methods.swap_fee().call();
 
-    this.state.exchangeFee = (exchangeFeeA + exchangeFeeB) / 2; // Average rate, as function gets called twice
+    const exchangeFee = (Number(exchangeFeeA) + Number(exchangeFeeB)) / 2; // Average rate, as function gets called twice
 
     const { value: inputReserveA, decimals: inputDecimalsA } = selectors().getBalance(exchangeAddressA, inputCurrency);
     const { value: outputReserveA }= selectors().getBalance(exchangeAddressA, 'VET');
@@ -209,6 +209,7 @@ class Swap extends Component {
         inputAmount: inputAmountA,
         inputReserve: inputReserveA,
         outputReserve: outputReserveA,
+        exchangeFee,
       });
       // Redundant Variable for readability of the formala
       // OutputAmount from the first swap becomes InputAmount of the second swap
@@ -217,6 +218,7 @@ class Swap extends Component {
         inputAmount: inputAmountB,
         inputReserve: inputReserveB,
         outputReserve: outputReserveB,
+        exchangeFee,
       });
 
       const outputValue = outputAmountB.dividedBy(BN(10 ** outputDecimalsB)).toFixed(7);
@@ -248,6 +250,7 @@ class Swap extends Component {
         outputAmount: outputAmountB,
         inputReserve: inputReserveB,
         outputReserve: outputReserveB,
+        exchangeFee,
       });
 
       // Redundant Variable for readability of the formala
@@ -257,6 +260,7 @@ class Swap extends Component {
         outputAmount: outputAmountA,
         inputReserve: inputReserveA,
         outputReserve: outputReserveA,
+        exchangeFee,
       });
 
       const inputValue = inputAmountA.isNegative()
@@ -308,9 +312,8 @@ class Swap extends Component {
     const { value: outputReserve, decimals: outputDecimals }= selectors().getBalance(exchangeAddress, outputCurrency);
 
     const exchange = new web3.eth.Contract(EXCHANGE_ABI, exchangeAddress);
-    const exchangeFee = await exchange.methods.swap_fee().call();
-
-    this.state.exchangeFee = exchangeFee;
+    let exchangeFee = await exchange.methods.swap_fee().call();
+    exchangeFee = Number(exchangeFee);
 
     if (lastEditedField === INPUT) {
       if (!oldInputValue) {
@@ -321,7 +324,7 @@ class Swap extends Component {
       }
 
       const inputAmount = BN(oldInputValue).multipliedBy(10 ** inputDecimals);
-      const outputAmount = calculateEtherTokenOutput({ inputAmount, inputReserve, outputReserve });
+      const outputAmount = calculateEtherTokenOutput({ inputAmount, inputReserve, outputReserve, exchangeFee });
       const outputValue = outputAmount.dividedBy(BN(10 ** outputDecimals)).toFixed(7);
       const exchangeRate = BN(outputValue).dividedBy(BN(oldInputValue));
 
@@ -970,7 +973,7 @@ export default connect(
 
 const b = text => <span className="swap__highlight-text">{text}</span>;
 
-function calculateEtherTokenOutput({ inputAmount: rawInput, inputReserve: rawReserveIn, outputReserve: rawReserveOut }) {
+function calculateEtherTokenOutput({ inputAmount: rawInput, inputReserve: rawReserveIn, outputReserve: rawReserveOut, exchangeFee }) {
   const inputAmount = BN(rawInput);
   const inputReserve = BN(rawReserveIn);
   const outputReserve = BN(rawReserveOut);
@@ -979,13 +982,13 @@ function calculateEtherTokenOutput({ inputAmount: rawInput, inputReserve: rawRes
     console.warn(`inputAmount is only ${inputAmount.toFixed(0)}. Did you forget to multiply by 10 ** decimals?`);
   }
 
-  const numerator = inputAmount.multipliedBy(outputReserve).multipliedBy(10000 - this.state.exchangeFee);
-  const denominator = inputReserve.multipliedBy(10000).plus(inputAmount.multipliedBy(10000 - this.state.exchangeFee));
+  const numerator = inputAmount.multipliedBy(outputReserve).multipliedBy(10000 - exchangeFee);
+  const denominator = inputReserve.multipliedBy(10000).plus(inputAmount.multipliedBy(10000 - exchangeFee));
 
   return numerator.dividedBy(denominator);
 }
 
-function calculateEtherTokenInput({ outputAmount: rawOutput, inputReserve: rawReserveIn, outputReserve: rawReserveOut }) {
+function calculateEtherTokenInput({ outputAmount: rawOutput, inputReserve: rawReserveIn, outputReserve: rawReserveOut, exchangeFee }) {
   const outputAmount = BN(rawOutput);
   const inputReserve = BN(rawReserveIn);
   const outputReserve = BN(rawReserveOut);
@@ -995,7 +998,7 @@ function calculateEtherTokenInput({ outputAmount: rawOutput, inputReserve: rawRe
   }
 
   const numerator = outputAmount.multipliedBy(inputReserve).multipliedBy(10000);
-  const denominator = outputReserve.minus(outputAmount).multipliedBy(10000 - this.state.exchangeFee);
+  const denominator = outputReserve.minus(outputAmount).multipliedBy(10000 - exchangeFee);
   return (numerator.dividedBy(denominator)).plus(1);
 }
 
@@ -1009,7 +1012,6 @@ function getSwapType(inputCurrency, outputCurrency) {
   }
 
   if (inputCurrency !== 'VET' && outputCurrency !== 'VET') {
-    console.log('l')
     return 'TOKEN_TO_TOKEN'
   }
 
