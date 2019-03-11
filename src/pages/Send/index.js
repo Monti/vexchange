@@ -5,6 +5,7 @@ import classnames from 'classnames';
 import {BigNumber as BN} from "bignumber.js";
 import { withNamespaces } from 'react-i18next';
 import ReactGA from "react-ga";
+import { Alert } from 'antd';
 
 import { selectors, addPendingTx } from '../../ducks/web3connect';
 import Header from '../../components/Header';
@@ -925,6 +926,13 @@ class Send extends Component {
               'header--inactive': !this.props.isConnected,
             })}
           />
+
+          <Alert
+            message="Do not send your coins from Vexchange directly to an exchange. Some exchanges do not support receiving coins from a smart contract."
+            type="warning"
+            closable
+          />
+
           <CurrencyInputPanel
             title={t("input")}
             description={lastEditedField === OUTPUT ? estimatedText : ''}

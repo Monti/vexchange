@@ -1,0 +1,4 @@
+This is a Brave Rewards publisher verification file.
+
+Domain: vexchange.io
+Token: 7913a1d16c2920a4926ae1db8aa80bdd2e972aa53d07903949d8bbcefc716187
