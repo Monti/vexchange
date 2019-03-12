@@ -210,7 +210,7 @@ class RemoveLiquidity extends Component {
     if (!exchangeAddress) {
       return null;
     }
-
+  
     const SLIPPAGE = 0.025;
     const { value: liquidityBalance, decimals } = getBalance(account, exchangeAddress);
     const { value: ethReserve } = getBalance(exchangeAddress);
