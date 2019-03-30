@@ -7,7 +7,6 @@ import { Button } from 'antd';
 import { startWatching } from '../../ducks/connexConnect';
 import { CSSTransitionGroup } from "react-transition-group";
 import { withNamespaces } from 'react-i18next';
-import { picasso } from '@vechain/picasso'
 import './status.scss';
 
 import Modal from '../Modal';
@@ -86,10 +85,12 @@ class Status extends Component {
     const hasPendingTransactions = !!pending.length;
     const hasConfirmedTransactions = !!confirmed.length;
 
-    const svg = picasso(address);
+    const svg = `https://cometverse.com/comet/${address}/mini.svg?fallback=picasso`;
 
     return (
-      <Button type={ hasPendingTransactions ? 'primary' : ''}>
+      <Button
+        style={{ height: 'auto' }}
+        type={ hasPendingTransactions ? 'primary' : ''}>
         <div className={classnames("web3-status", {
           'web3-status__connected': this.props.isConnected,
           'web3-status--confirmed': hasConfirmedTransactions,
@@ -102,10 +103,9 @@ class Status extends Component {
                 getText(address, t("disconnected")) 
             }
           </div>
-          <div
-            className="web3-status__identicon"
-            style={{ background: `no-repeat url('data:image/svg+xml;utf8,${svg}')` }}
-          />
+          <div className="web3-status__identicon">
+            <img src={svg} />
+          </div>
           {this.renderModal()}
         </div>
       </Button>
