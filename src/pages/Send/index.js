@@ -170,7 +170,7 @@ class Send extends Component {
     const {
       exchangeAddresses: { fromToken },
       selectors,
-      web3,
+      connex,
     } = this.props;
 
     const {
@@ -186,10 +186,13 @@ class Send extends Component {
     const exchangeAddressA = fromToken[inputCurrency];
     const exchangeAddressB = fromToken[outputCurrency];
 
-    const exchangeA = new web3.eth.Contract(EXCHANGE_ABI, exchangeAddressA);
-    const exchangeB = new web3.eth.Contract(EXCHANGE_ABI, exchangeAddressB);
-    const exchangeFeeA = await exchangeA.methods.swap_fee().call();
-    const exchangeFeeB = await exchangeB.methods.swap_fee().call();
+    const swap_feeABI = _.find(EXCHANGE_ABI, { name: 'swap_fee' });
+
+    const swap_feeA = connex.thor.account(exchangeAddressA).method(swap_feeABI);
+    const swap_feeB = connex.thor.account(exchangeAddressB).method(swap_feeABI);
+
+    const { decoded: { 0: exchangeFeeA } } = await swap_feeA.call()
+    const { decoded: { 0: exchangeFeeB } } = await swap_feeB.call()
 
     const exchangeFee = (Number(exchangeFeeA) + Number(exchangeFeeB)) / 2; // Average fee between both markets
 
@@ -291,7 +294,7 @@ class Send extends Component {
     const {
       exchangeAddresses: { fromToken },
       selectors,
-      web3,
+      connex,
     } = this.props;
 
     const {
@@ -311,8 +314,10 @@ class Send extends Component {
     const { value: inputReserve, decimals: inputDecimals } = selectors().getBalance(exchangeAddress, inputCurrency);
     const { value: outputReserve, decimals: outputDecimals }= selectors().getBalance(exchangeAddress, outputCurrency);
 
-    const exchange = new web3.eth.Contract(EXCHANGE_ABI, exchangeAddress);
-    let exchangeFee = await exchange.methods.swap_fee().call();
+    const swap_feeABI = _.find(EXCHANGE_ABI, { name: 'swap_fee' });
+    const swap_fee = connex.thor.account(exchangeAddress).method(swap_feeABI);
+
+    let { decoded: { 0: exchangeFee } } = await swap_fee.call();
     exchangeFee = Number(exchangeFee);
 
     if (lastEditedField === INPUT) {

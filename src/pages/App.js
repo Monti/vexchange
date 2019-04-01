@@ -25,7 +25,7 @@ class App extends Component {
   componentWillReceiveProps({ connex }) {
     if (connex && isEqual(this.props.connex, connex)) {
       connex.thor.block(0).get().then(block => {
-        const networkId = hexToBytes(block.id);
+        const networkId = hexToBytes(block.id).pop();
         setAddresses(networkId);
         this.hasSetNetworkId = true;
       });

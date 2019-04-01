@@ -60,7 +60,7 @@ const MAIN = {
 const SET_ADDRESSES = 'app/addresses/setAddresses';
 const ADD_EXCHANGE = 'app/addresses/addExchange';
 
-const initialState = TESTNET;
+const initialState = MAIN;
 
 export const addExchange = ({label, exchangeAddress, tokenAddress}) => (dispatch, getState) => {
   const { addresses: { tokenAddresses, exchangeAddresses } } = getState();
