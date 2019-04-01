@@ -5,7 +5,7 @@ import { hexToBytes } from 'web3-utils';
 import { isEqual } from 'lodash';
 import MediaQuery from 'react-responsive';
 import { AnimatedSwitch } from 'react-router-transition';
-import { ConnexConnect, startWatching, initialize } from '../ducks/connexConnect';
+import { ConnexConnect, initialize } from '../ducks/connexConnect';
 import { setAddresses } from '../ducks/addresses';
 import Header from '../components/Header';
 import TosModal from '../components/TosModal';
@@ -18,8 +18,8 @@ import './App.scss';
 
 class App extends Component {
   componentDidMount() {
-    const { initialize, startWatching } = this.props;
-    initialize().then(startWatching);
+    const { initialize } = this.props;
+    initialize();
   }
 
   componentWillReceiveProps({ connex }) {
@@ -83,6 +83,5 @@ export default connect(
   dispatch => ({
     setAddresses: networkId => dispatch(setAddresses(networkId)),
     initialize: () => dispatch(initialize()),
-    startWatching: () => dispatch(startWatching()),
   }),
 )(App);

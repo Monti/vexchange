@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 import classnames from 'classnames';
 import { isHexStrict, toChecksumAddress } from 'web3-utils';
 import { Button } from 'antd';
-import { startWatching } from '../../ducks/connexConnect';
 import { CSSTransitionGroup } from "react-transition-group";
 import { withNamespaces } from 'react-i18next';
 import './status.scss';
@@ -22,9 +21,6 @@ class Status extends Component {
     this.state = {
       isShowingModal: false,
     };
-  }
-
-  componentDidMount() {
   }
 
   handleClick = () => {
@@ -148,8 +144,5 @@ export default connect(
     pending: state.connexConnect.transactions.pending,
     confirmed: state.connexConnect.transactions.confirmed,
     networkId: state.connexConnect.networkId,
-  }),
-  dispatch => ({
-    startWatching: () => dispatch(startWatching()),
   }),
 )(withNamespaces()(Status));

@@ -170,7 +170,7 @@ export const sync = () => async (dispatch, getState) => {
     watched,
     contracts,
     networkId,
-    transactions: { pending, confirmed },
+    transactions: { pending },
   } = getState().connexConnect;
 
   if (!networkId) {
@@ -361,16 +361,6 @@ export const sync = () => async (dispatch, getState) => {
   });
 };
 
-export const startWatching = () => async (dispatch, getState) => {
-  const { account } = getState().connexConnect;
-  const timeout = !account
-    ? 1000
-    : 5000;
-
-  dispatch(sync());
-  setTimeout(() => dispatch(startWatching()), timeout);
-};
-
 export default function connexConnectReducer(state = initialState, { type, payload }) {
   switch (type) {
     case INITIALIZE:
@@ -520,11 +510,6 @@ export class _connexConnect extends Component {
     initialize() {}
   };
 
-  componentWillMount() {
-    const { initialize, startWatching } = this.props;
-    initialize().then(startWatching());
-  }
-
   render() {
     return <noscript />;
   }
@@ -536,6 +521,5 @@ export const ConnexConnect = connect(
   }),
   dispatch => ({
     initialize: () => dispatch(initialize()),
-    startWatching: () => dispatch(startWatching()),
   }),
 )(_connexConnect);
