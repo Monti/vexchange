@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { BrowserRouter, Redirect, Route } from 'react-router-dom';
+import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
 import MediaQuery from 'react-responsive';
 import { AnimatedSwitch } from 'react-router-transition';
 import { Web3Connect, startWatching, initialize } from '../ducks/web3connect';
@@ -60,26 +60,22 @@ class App extends Component {
 
         <Web3Connect />
 
-        <BrowserRouter>
-          <>
-            <AnimatedSwitch
-              atEnter={{ opacity: 0 }}
-              atLeave={{ opacity: 0 }}
-              atActive={{ opacity: 1 }}
-              className="app__switch-wrapper"
-            >
+        <div className="app__switch-wrapper">
+
+          <BrowserRouter>
+            <Switch>
               <Route exact path="/swap" component={Swap} />
               <Route exact path="/send" component={Send} />
               <Route exact path="/add-liquidity" component={Pool} />
               <Route exact path="/remove-liquidity" component={Pool} />
               <Route exact path="/create-exchange/:tokenAddress?" component={Pool} />
               <Route exact path="/terms-of-service" component={Tos} />
-              <Redirect exact from="/" to="/swap" />
+              <Redirect exact push from="/" to="/swap" />
+            </Switch>
+          </BrowserRouter>
 
-            </AnimatedSwitch>
+        </div>
 
-          </>
-        </BrowserRouter>
         <div>
           <TosModal />
         </div>
