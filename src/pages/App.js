@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { BrowserRouter, Redirect, Route } from 'react-router-dom';
+import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
 import { hexToBytes } from 'web3-utils';
 import { isEqual } from 'lodash';
 import MediaQuery from 'react-responsive';
-import { AnimatedSwitch } from 'react-router-transition';
 import { ConnexConnect, initialize } from '../ducks/connexConnect';
 import { setAddresses } from '../ducks/addresses';
 import Header from '../components/Header';
@@ -46,14 +45,9 @@ class App extends Component {
 
         <ConnexConnect />
 
-        <BrowserRouter>
-          <>
-            <AnimatedSwitch
-              atEnter={{ opacity: 0 }}
-              atLeave={{ opacity: 0 }}
-              atActive={{ opacity: 1 }}
-              className="app__switch-wrapper"
-            >
+        <div className="app__switch-wrapper">
+          <BrowserRouter>
+            <Switch>
               <Route exact path="/swap" component={Swap} />
               <Route exact path="/send" component={Send} />
               <Route exact path="/add-liquidity" component={Pool} />
@@ -61,14 +55,12 @@ class App extends Component {
               <Route exact path="/create-exchange/:tokenAddress?" component={Pool} />
               <Route exact path="/terms-of-service" component={Tos} />
               <Redirect exact from="/" to="/swap" />
-
-            </AnimatedSwitch>
-
-          </>
-        </BrowserRouter>
-        <div>
-          <TosModal />
+            </Switch>
+          </BrowserRouter>
         </div>
+
+        <TosModal />
+
       </div>
     );
   }
