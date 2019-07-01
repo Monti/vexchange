@@ -46,6 +46,7 @@ class App extends Component {
         <ConnexConnect />
 
         <div className="app__switch-wrapper">
+
           <BrowserRouter>
             <Switch>
               <Route exact path="/swap" component={Swap} />
@@ -54,13 +55,15 @@ class App extends Component {
               <Route exact path="/remove-liquidity" component={Pool} />
               <Route exact path="/create-exchange/:tokenAddress?" component={Pool} />
               <Route exact path="/terms-of-service" component={Tos} />
-              <Redirect exact from="/" to="/swap" />
+              <Redirect exact push from="/" to="/swap" />
             </Switch>
           </BrowserRouter>
+
         </div>
 
-        <TosModal />
-
+        <div>
+          <TosModal />
+        </div>
       </div>
     );
   }
