@@ -55,22 +55,6 @@ class NavigationTabs extends Component {
           { this.renderTab(t("send"), '/send', /send/) }
           { this.renderTab(t("pool"), '/add-liquidity', /add-liquidity|remove-liquidity|create-exchange/) }
         </Tabs>
-        { showBetaMessage &&
-          <Alert
-            message={(
-              <div>
-                💀 {t("betaWarning")}
-                &nbsp;
-                <Link to="/terms-of-service">
-                  Terms of Service
-                </Link>
-              </div>
-            )}
-            onClose={dismissBetaMessage}
-            type="error"
-            closable
-          />
-        }
       </div>
     );
   }
