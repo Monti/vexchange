@@ -96,10 +96,10 @@ class AddLiquidity extends Component {
     const getTotalSupply = await totalSupply.call();
     const getPlatFormFee = await platFormFee.call();
 
-    append.platFormFee = getPlatFormFee;
+    append.platFormFee = getPlatFormFee.decoded[0];
 
-    if (!oldTotalSupply.isEqualTo(BN(getTotalSupply))) {
-      append.totalSupply = BN(getTotalSupply);
+    if (!oldTotalSupply.isEqualTo(BN(getTotalSupply.decoded[0]))) {
+      append.totalSupply = BN(getTotalSupply.decoded[0]);
     }
 
     if (lastEditedField === INPUT) {
@@ -171,11 +171,14 @@ class AddLiquidity extends Component {
     const { decimals } = selectors().getTokenBalance(outputCurrency, fromToken[outputCurrency]);
     const tokenAmount = BN(outputValue).multipliedBy(10 ** decimals);
     const { value: ethReserve } = selectors().getBalance(fromToken[outputCurrency]);
-    const totalLiquidity = await totalSupply.call();
-    const liquidityMinted = BN(totalLiquidity).multipliedBy(ethAmount.dividedBy(ethReserve));
+
+    const { decoded } = await totalSupply.call();
+
+    const liquidityMinted = BN(decoded[0]).multipliedBy(ethAmount.dividedBy(ethReserve));
     let deadline;
     try {
       deadline = await retry(() => getBlockDeadline(connex, 300));
+
     } catch(e) {
       console.log(e)
       // TODO: Handle error.
@@ -191,13 +194,23 @@ class AddLiquidity extends Component {
 
     addLiquidity.value(ethAmount.toFixed(0));
 
+    console.log(
+        minLiquidity.toFixed(0),
+        maxTokens.toFixed(0),
+        deadline
+    );
+
     signingService.request([
       addLiquidity.asClause(
-        minLiquidity.toFixed(0), maxTokens.toFixed(0), deadline
+        minLiquidity.toFixed(0),
+        maxTokens.toFixed(0),
+        deadline
       ),
     ]).then(( {txid }) => {
       addPendingTx(txid);
       this.reset();
+    }).catch(err => {
+      console.log(err);
     });
   };
 

@@ -2,7 +2,6 @@ export function getBlockDeadline(connex, deadline) {
   return new Promise(async (resolve, reject) => {
     const block = await connex.thor.block().get();
 
-    console.log(block)
     if (!block.id && block.id !== 0) {
       return reject();
     }
