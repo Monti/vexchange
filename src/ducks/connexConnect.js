@@ -234,19 +234,19 @@ export const sync = () => async (dispatch, getState) => {
         let symbol = tokenBalance.symbol;
 
         const balanceOfABI = _.find(ERC20_ABI, { name: 'balanceOf' });
-        const balance = connex.thor.account(tokenAddress).method(balanceOfABI).call(address);
+        const balance = await connex.thor.account(tokenAddress).method(balanceOfABI).call(address);
 
         const decimalsABI = _.find(ERC20_ABI, { name: 'decimals' });
-        const decimals = tokenBalance.decimals || connex.thor.account(tokenAddress).method(decimalsABI).call();
+        const decimals = tokenBalance.decimals || await connex.thor.account(tokenAddress).method(decimalsABI).call();
 
         const symbolABI = _.find(ERC20_ABI, { name: 'symbol' });
         const bytes32SymbolABI = _.find(ERC20_WITH_BYTES_ABI, { name: 'symbol' });
 
         try {
-          symbol = symbol || connex.thor.account(tokenAddress).method(symbolABI).call();
+          symbol = symbol || await connex.thor.account(tokenAddress).method(symbolABI).call();
         } catch (e) {
           try {
-            symbol = symbol || connex.thor.account(tokenAddress).method(bytes32SymbolABI).call();
+            symbol = symbol || await connex.thor.account(tokenAddress).method(bytes32SymbolABI).call();
           } catch (err) {
             console.log(err)
           }
@@ -285,21 +285,21 @@ export const sync = () => async (dispatch, getState) => {
             let symbol = approvalBalance.label;
 
             const balanceABI = _.find(ERC20_ABI, { name: 'allowance' });
-            const balance = connex.thor.account(tokenAddress).method(balanceABI).call(tokenOwnerAddress, spenderAddress)
+            const balance = await connex.thor.account(tokenAddress).method(balanceABI).call(tokenOwnerAddress, spenderAddress)
 
             const decimalsABI = _.find(ERC20_ABI, { name: 'decimals' });
             const decimals = approvalBalance.decimals ||
-              connex.thor.account(tokenAddress).method(decimalsABI).call();
+              await connex.thor.account(tokenAddress).method(decimalsABI).call();
 
             const symbolABI = _.find(ERC20_ABI, { name: 'symbol' });
             const bytes32SymbolABI = _.find(ERC20_WITH_BYTES_ABI, { name: 'symbol' });
 
             try {
-              symbol = symbol || window.connex.thor.account(tokenAddress).method(symbolABI).call();
+              symbol = symbol || await window.connex.thor.account(tokenAddress).method(symbolABI).call();
             } catch (e) {
               try {
                 symbol = symbol || 
-                  hexToNumberString(window.connex.thor.account(tokenAddress).method(bytes32SymbolABI).call());
+                  hexToNumberString(await window.connex.thor.account(tokenAddress).method(bytes32SymbolABI).call());
                 console.log(symbol);
               } catch (err) {
                 console.log(err)
