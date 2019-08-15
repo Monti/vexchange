@@ -44,7 +44,7 @@
       <select id="baselineSelector" style="font-size: 14pt; width: 300px">
         <option value="token">Hodl Token</option>
         <option value="eth">Hodl VET</option>
-        <option value="portfolio" selected="selected">Hodl Uniswap Deposit</option>
+        <option value="portfolio" selected="selected">Hodl Vexchange Deposit</option>
       </select>
     </div>
     <div id="container" style="width:100%; height:800px;"></div>
@@ -231,7 +231,7 @@
               }
 
               $('#report').html(
-                'Uniswap returns <b>' +
+                'Vexchange returns <b>' +
                 (performance > 1 ? '+' : '') +
                 ((performance - 1) * 100).toFixed(2) + '%</b> from baseline'
               );
@@ -265,7 +265,7 @@
       }
 
       $('#report').html(
-        'Uniswap returns <b>' +
+        'Vexchange returns <b>' +
         (performance > 1 ? '+' : '') +
         ((performance - 1) * 100).toFixed(2) + '%</b> from baseline'
       );
