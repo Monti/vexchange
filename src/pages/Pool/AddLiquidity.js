@@ -215,10 +215,10 @@ export default function AddLiquidity() {
   }, [exchangeContract])
   useEffect(() => {
     fetchPoolTokens()
-    library.on('block', fetchPoolTokens)
+    library.currentProvider.on('block', fetchPoolTokens)
 
     return () => {
-      library.removeListener('block', fetchPoolTokens)
+      library.currentProvider.removeListener('block', fetchPoolTokens)
     }
   }, [fetchPoolTokens, library])
 

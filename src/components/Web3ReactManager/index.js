@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useWeb3Context, Connectors } from 'web3-react'
 import styled from 'styled-components'
-import { ethers } from 'ethers'
+import { extend } from 'thorify/dist/extend'
 import { useTranslation } from 'react-i18next'
 import { isMobile } from 'react-device-detect'
+import Web3 from 'web3';
 
 import { Spinner } from '../../theme'
 import Circle from '../../assets/images/circle.svg'
@@ -47,12 +48,14 @@ export default function Web3ReactManager({ children }) {
 
   useEffect(() => {
     if (!active && !error) {
-      if (window.ethereum || window.web3) {
+      if (window.thor || window.web3) {
         if (isMobile) {
           tryToSetConnector(setConnector, setError)
         } else {
-          const library = new ethers.providers.Web3Provider(window.ethereum || window.web3)
-          library.listAccounts().then(accounts => {
+          const web3 = new Web3(window.thor)
+          extend(web3)
+
+          web3.eth.getAccounts().then(accounts => {
             if (accounts.length >= 1) {
               tryToSetConnector(setConnector, setError)
             } else {

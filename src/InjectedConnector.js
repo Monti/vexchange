@@ -10,36 +10,34 @@ export default class InjectedConnector extends ErrorCodeMixin(Connector, Injecte
     this.networkChangedHandler = this.networkChangedHandler.bind(this)
     this.accountsChangedHandler = this.accountsChangedHandler.bind(this)
 
-    const { ethereum } = window
-    if (ethereum && ethereum.isMetaMask) {
-      ethereum.autoRefreshOnNetworkChange = false
+    const { thor } = window
+    if (thor && thor.isComet) {
+      thor.autoRefreshOnNetworkChange = false
     }
   }
 
   async onActivation() {
-    const { ethereum, web3 } = window
+    const { thor } = window
 
-    if (ethereum) {
-      await ethereum.enable().catch(error => {
+    if (thor) {
+      await thor.enable().catch(error => {
         const deniedAccessError = Error(error)
         deniedAccessError.code = InjectedConnector.errorCodes.ETHEREUM_ACCESS_DENIED
         throw deniedAccessError
       })
 
       // initialize event listeners
-      if (ethereum.on) {
-        ethereum.on('networkChanged', this.networkChangedHandler)
-        ethereum.on('accountsChanged', this.accountsChangedHandler)
+      if (thor.on) {
+        thor.on('networkChanged', this.networkChangedHandler)
+        thor.on('accountsChanged', this.accountsChangedHandler)
 
         this.runOnDeactivation.push(() => {
-          if (ethereum.removeListener) {
-            ethereum.removeListener('networkChanged', this.networkChangedHandler)
-            ethereum.removeListener('accountsChanged', this.accountsChangedHandler)
+          if (thor.removeListener) {
+            thor.removeListener('networkChanged', this.networkChangedHandler)
+            thor.removeListener('accountsChanged', this.accountsChangedHandler)
           }
         })
       }
-    } else if (web3) {
-      console.warn('Your web3 provider is outdated, please upgrade to a modern provider.')
     } else {
       const noWeb3Error = Error('Your browser is not equipped with web3 capabilities.')
       noWeb3Error.code = InjectedConnector.errorCodes.NO_WEB3
@@ -48,8 +46,8 @@ export default class InjectedConnector extends ErrorCodeMixin(Connector, Injecte
   }
 
   async getProvider() {
-    const { ethereum, web3 } = window
-    return ethereum || web3.currentProvider
+    const { thor } = window
+    return thor
   }
 
   async getAccount(provider) {

@@ -109,7 +109,7 @@ export function Updater() {
       let stale = false
 
       function update() {
-        library
+        library.eth
           .getBlockNumber()
           .then(blockNumber => {
             if (!stale) {
@@ -124,7 +124,7 @@ export function Updater() {
       }
 
       update()
-      library.on('block', update)
+      window.thor.on('block', update)
 
       return () => {
         stale = true

@@ -6,6 +6,8 @@ import { darken, transparentize } from 'polished'
 import Jazzicon from 'jazzicon'
 import { ethers } from 'ethers'
 import { Activity } from 'react-feather'
+import { extend } from 'thorify/dist/extend'
+import Web3 from 'web3'
 
 import { shortenAddress } from '../../utils'
 import { useENSName } from '../../hooks'
@@ -160,13 +162,15 @@ export default function Web3Status() {
   // janky logic to detect log{ins,outs}...
   useEffect(() => {
     // if the injected connector is not active...
-    const { ethereum } = window
+    const { thor } = window
+    const web3 = new Web3(thor)
+    extend(web3)
+
     if (connectorName !== 'Injected') {
-      if (connectorName === 'Network' && ethereum && ethereum.on && ethereum.removeListener) {
+      if (connectorName === 'Network' && thor && thor.on && thor.removeListener) {
         function tryToActivateInjected() {
-          const library = new ethers.providers.Web3Provider(window.ethereum)
           // if calling enable won't pop an approve modal, then try to activate injected...
-          library.listAccounts().then(accounts => {
+          web3.eth.getAccounts().then(accounts => {
             if (accounts.length >= 1) {
               setConnector('Injected', { suppressAndThrowErrors: true })
                 .then(() => {
@@ -182,22 +186,21 @@ export default function Web3Status() {
           })
         }
 
-        ethereum.on('networkChanged', tryToActivateInjected)
-        ethereum.on('accountsChanged', tryToActivateInjected)
+        thor.on('networkChanged', tryToActivateInjected)
+        thor.on('accountsChanged', tryToActivateInjected)
 
         return () => {
-          if (ethereum.removeListener) {
-            ethereum.removeListener('networkChanged', tryToActivateInjected)
-            ethereum.removeListener('accountsChanged', tryToActivateInjected)
+          if (thor.removeListener) {
+            thor.removeListener('networkChanged', tryToActivateInjected)
+            thor.removeListener('accountsChanged', tryToActivateInjected)
           }
         }
       }
     } else {
       // ...poll to check the accounts array, and if it's ever 0 i.e. the user logged out, update the connector
-      if (ethereum) {
+      if (thor) {
         const accountPoll = setInterval(() => {
-          const library = new ethers.providers.Web3Provider(ethereum)
-          library.listAccounts().then(accounts => {
+          web3.eth.getAccounts().then(accounts => {
             if (accounts.length === 0) {
               setConnector('Network')
             }
@@ -214,7 +217,7 @@ export default function Web3Status() {
   function onClick() {
     if (walletModalError) {
       openWalletModal()
-    } else if (connectorName === 'Network' && (window.ethereum || window.web3)) {
+    } else if (connectorName === 'Network' && (window.thor || window.web3)) {
       setConnector('Injected', { suppressAndThrowErrors: true }).catch(error => {
         if (error.code === Connector.errorCodes.UNSUPPORTED_NETWORK) {
           setError(error)

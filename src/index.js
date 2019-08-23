@@ -1,7 +1,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import ReactGA from 'react-ga'
-import Web3Provider, { Connectors } from 'web3-react'
+import Web3 from 'web3'
+import Web3Provider from 'web3-react'
 
 import ThemeProvider, { GlobalStyle } from './theme'
 import LocalStorageContextProvider, { Updater as LocalStorageContextUpdater } from './contexts/LocalStorage'
@@ -24,10 +25,8 @@ if (process.env.NODE_ENV === 'production') {
 }
 ReactGA.pageview(window.location.pathname + window.location.search)
 
-const { NetworkOnlyConnector } = Connectors
 const Injected = new InjectedConnector({ supportedNetworks: [Number(process.env.REACT_APP_NETWORK_ID || '1')] })
-const Network = new NetworkOnlyConnector({ providerURL: process.env.REACT_APP_NETWORK_URL || '' })
-const connectors = { Injected, Network }
+const connectors = { Injected }
 
 function ContextProviders({ children }) {
   return (
