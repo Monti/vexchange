@@ -57,10 +57,10 @@ const theme = darkMode => ({
   //blacks
   charcoalBlack: darkMode ? '#F2F2F2' : '#404040',
   // blues
-  zumthorBlue: darkMode ? '#212529' : '#EBF4FF',
-  malibuBlue: darkMode ? '#E67AEF' : '#5CA2FF',
-  royalBlue: darkMode ? '#58a8a6' : '#2F80ED',
-  loadingBlue: darkMode ? '#e4f0ff' : '#e4f0ff',
+  zumthorBlue: darkMode ? '#212529' : '#ffffff',
+  malibuBlue: darkMode ? '#E67AEF' : '#58a8a6',
+  royalBlue: darkMode ? '#58a8a6' : '#58a8a6',
+  loadingBlue: darkMode ? '#e4f0ff' : '#58a8a6',
 
   vexchangeGreen: '#58a8a6',
 
