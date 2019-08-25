@@ -122,7 +122,7 @@ const Container = styled.div`
 
   background-color: ${({ theme }) => theme.inputBackground};
   :focus-within {
-    border: 1px solid ${({ theme }) => theme.malibuBlue};
+    border: 1px solid ${({ theme }) => theme.vexchangeGreen};
   }
 `
 

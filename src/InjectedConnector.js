@@ -54,7 +54,7 @@ export default class InjectedConnector extends ErrorCodeMixin(Connector, Injecte
     const account = await super.getAccount(provider)
 
     if (account === null) {
-      const unlockRequiredError = Error('Ethereum account locked.')
+      const unlockRequiredError = Error('VeChain account locked.')
       unlockRequiredError.code = InjectedConnector.errorCodes.UNLOCK_REQUIRED
       throw unlockRequiredError
     }
@@ -85,7 +85,7 @@ export default class InjectedConnector extends ErrorCodeMixin(Connector, Injecte
 
   accountsChangedHandler(accounts) {
     if (!accounts[0]) {
-      const unlockRequiredError = Error('Ethereum account locked.')
+      const unlockRequiredError = Error('VeChain account locked.')
       unlockRequiredError.code = InjectedConnector.errorCodes.UNLOCK_REQUIRED
       super._web3ReactErrorHandler(unlockRequiredError)
     } else {

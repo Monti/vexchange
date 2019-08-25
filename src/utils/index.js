@@ -47,7 +47,7 @@ export function getEtherscanLink(networkId, data, type) {
 export function getNetworkName(networkId) {
   switch (networkId) {
     case 74: {
-      return 'the Main Ethereum Network'
+      return 'the Main VeChain Network'
     }
     case 39: {
       return 'the Ropsten Test Network'

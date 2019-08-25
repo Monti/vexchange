@@ -11,7 +11,7 @@ const Image = styled.img`
   width: ${({ size }) => size};
   height: ${({ size }) => size};
   background-color: white;
-  border-radius: 3px;
+  border-radius: 1rem;
 `
 
 const Emoji = styled.span`

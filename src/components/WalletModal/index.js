@@ -141,7 +141,7 @@ export default function WalletModal({ isOpen, error, onDismiss, pendingTransacti
         <>
           <UpperSection>
             <h4>Wrong Network</h4>
-            <h5>Please connect to the main Ethereum network.</h5>
+            <h5>Please connect to the main VeChain network.</h5>
           </UpperSection>
         </>
       )
@@ -187,7 +187,7 @@ export default function WalletModal({ isOpen, error, onDismiss, pendingTransacti
       return (
         <>
           <UpperSection>
-            <h4>No Ethereum account found</h4>
+            <h4>No VeChain account found</h4>
             <h5>Please visit this page in a Web3 enabled browser.</h5>
             <h5>
               <Link href={'https://ethereum.org/use/#_3-what-is-a-wallet-and-which-one-should-i-use'}>
