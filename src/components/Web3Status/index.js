@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
 import { useWeb3Context, Connectors } from 'web3-react-thor'
 import { darken, transparentize } from 'polished'
-import Jazzicon from 'jazzicon'
+import { picasso } from '@vechain/picasso'
 import { Activity } from 'react-feather'
 import { extend } from 'thorify/dist/extend'
 import Web3 from 'web3'
@@ -229,7 +229,13 @@ export default function Web3Status() {
     if (ref.current) {
       ref.current.innerHTML = ''
       if (account) {
-        ref.current.appendChild(Jazzicon(16, parseInt(account.slice(2, 10), 16)))
+        const div = document.createElement("div")
+        const svg = picasso(account)
+        div.style.background = `no-repeat url('data:image/svg+xml;utf8,${svg}')`
+        div.style.height = '16px' 
+				div.style.width = '16px'
+
+        ref.current.appendChild(div)
       }
     }
   }, [account, walletModalError])
