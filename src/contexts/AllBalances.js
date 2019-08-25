@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useReducer, useMemo, useCallback } from 'react'
 import { ethers } from 'ethers'
 import { getTokenReserves, getMarketDetails, BigNumber } from '@uniswap/sdk'
-import { useWeb3Context } from 'web3-react'
+import { useWeb3Context } from 'web3-react-thor'
 
 import { safeAccess, isAddress, getEtherBalance, getTokenBalance } from '../utils'
 import { useAllTokenDetails } from './Tokens'

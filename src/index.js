@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import ReactGA from 'react-ga'
 import Web3 from 'web3'
-import Web3Provider from 'web3-react'
+import Web3Provider from 'web3-react-thor'
 import WebFont from 'webfontloader'
 
 import ThemeProvider, { GlobalStyle } from './theme'

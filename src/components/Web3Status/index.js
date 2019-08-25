@@ -1,7 +1,7 @@
 import React, { useReducer, useEffect, useRef } from 'react'
 import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
-import { useWeb3Context, Connectors } from 'web3-react'
+import { useWeb3Context, Connectors } from 'web3-react-thor'
 import { darken, transparentize } from 'polished'
 import Jazzicon from 'jazzicon'
 import { Activity } from 'react-feather'

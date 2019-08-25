@@ -1,4 +1,4 @@
-import { Connectors } from 'web3-react'
+import { Connectors } from 'web3-react-thor'
 const { Connector, ErrorCodeMixin } = Connectors
 
 const InjectedConnectorErrorCodes = ['ETHEREUM_ACCESS_DENIED', 'NO_WEB3', 'UNLOCK_REQUIRED']

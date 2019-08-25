@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useWeb3Context, Connectors } from 'web3-react'
+import { useWeb3Context, Connectors } from 'web3-react-thor'
 import styled from 'styled-components'
 import { extend } from 'thorify/dist/extend'
 import { useTranslation } from 'react-i18next'

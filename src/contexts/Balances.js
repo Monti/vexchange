@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
-import { useWeb3Context } from 'web3-react'
+import { useWeb3Context } from 'web3-react-thor'
 
 import { safeAccess, isAddress, getEtherBalance, getTokenBalance } from '../utils'
 import { useBlockNumber } from './Application'

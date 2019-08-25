@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react'
-import { useWeb3Context } from 'web3-react'
+import { useWeb3Context } from 'web3-react-thor'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ethers } from 'ethers'
@@ -286,7 +286,7 @@ export default function CurrencyInputPanel({
   const { t } = useTranslation()
 
   const [modalIsOpen, setModalIsOpen] = useState(false)
-  const { account, library } = useWeb3Context()
+  const { account } = useWeb3Context()
 
   const tokenContract = useTokenContract(selectedTokenAddress)
   const { exchangeAddress: selectedTokenExchangeAddress } = useTokenDetails(selectedTokenAddress)

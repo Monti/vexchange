@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactGA from 'react-ga'
-import { useWeb3Context } from 'web3-react'
+import { useWeb3Context } from 'web3-react-thor'
 import { ethers } from 'ethers'
 import styled from 'styled-components'
 

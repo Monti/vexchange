@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
-import { useWeb3Context } from 'web3-react'
+import { useWeb3Context } from 'web3-react-thor'
 
 import { safeAccess } from '../utils'
 import { useBlockNumber } from './Application'
@@ -112,6 +112,7 @@ export function Updater() {
 
   useEffect(() => {
     if ((networkId || networkId === 0) && library) {
+      // eslint-disable-next-line
       let stale = false
       Object.keys(allTransactions)
         .filter(
