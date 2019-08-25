@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
+import { ethers } from 'ethers'
 import { useWeb3Context } from 'web3-react'
 
 import { safeAccess, isAddress, getTokenAllowance } from '../utils'
@@ -59,7 +60,7 @@ export function useAddressAllowance(address, tokenAddress, spenderAddress) {
   const globalBlockNumber = useBlockNumber()
 
   const [state, { update }] = useAllowancesContext()
-  const { value, blockNumber } = safeAccess(state, [networkId, address, tokenAddress, spenderAddress]) || {}
+  let { value, blockNumber } = safeAccess(state, [networkId, address, tokenAddress, spenderAddress]) || {}
 
   useEffect(() => {
     if (
@@ -89,6 +90,10 @@ export function useAddressAllowance(address, tokenAddress, spenderAddress) {
       }
     }
   }, [address, tokenAddress, spenderAddress, value, blockNumber, globalBlockNumber, networkId, library, update])
+
+  if (value) {
+    value = ethers.utils.bigNumberify(value)
+  }
 
   return value
 }

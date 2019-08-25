@@ -118,20 +118,22 @@ export function Updater() {
           hash => !allTransactions[hash][RECEIPT] && allTransactions[hash][BLOCK_NUMBER_CHECKED] !== globalBlockNumber
         )
         .forEach(hash => {
-          library
-            .getTransactionReceipt(hash)
-            .then(receipt => {
-              if (!stale) {
-                if (!receipt) {
-                  check(networkId, hash, globalBlockNumber)
-                } else {
-                  finalize(networkId, hash, receipt)
-                }
+          const interval = setInterval(async () => {
+            try {
+              const receipt = await library.eth.getTransactionReceipt(hash)
+
+              if (receipt) {
+                finalize(networkId, hash, receipt)
+                clearInterval(interval);
+              } else {
+                check(networkId, hash, globalBlockNumber)
               }
-            })
-            .catch(() => {
+
+            } catch(error) {
               check(networkId, hash, globalBlockNumber)
-            })
+              clearInterval(interval);
+            }
+          }, 1000);
         })
 
       return () => {

@@ -1,7 +1,7 @@
 import React, { useReducer, useState, useCallback, useEffect, useMemo } from 'react'
+import { ethers } from 'ethers'
 import { useTranslation } from 'react-i18next'
 import { useWeb3Context } from 'web3-react'
-import { ethers } from 'ethers'
 import ReactGA from 'react-ga'
 import styled from 'styled-components'
 
@@ -41,7 +41,7 @@ const NewExchangeWarning = styled.div`
   margin-bottom: 2rem;
   border: 1px solid rgba($pizazz-orange, 0.4);
   background-color: rgba($pizazz-orange, 0.1);
-  border-radius: 1rem;
+  border-radius: 3px;
 `
 
 const NewExchangeWarningText = styled.div`
@@ -195,7 +195,7 @@ export default function AddLiquidity() {
 
   const [addLiquidityState, dispatchAddLiquidityState] = useReducer(addLiquidityStateReducer, initialAddLiquidityState)
   const { inputValue, outputValue, lastEditedField, outputCurrency } = addLiquidityState
-  const inputCurrency = 'ETH'
+  const inputCurrency = 'VET'
 
   const [inputValueParsed, setInputValueParsed] = useState()
   const [outputValueParsed, setOutputValueParsed] = useState()
@@ -208,7 +208,8 @@ export default function AddLiquidity() {
   const [totalPoolTokens, setTotalPoolTokens] = useState()
   const fetchPoolTokens = useCallback(() => {
     if (exchangeContract) {
-      exchangeContract.totalSupply().then(totalSupply => {
+      exchangeContract.methods.totalSupply().call().then(totalSupply => {
+        totalSupply = ethers.utils.bigNumberify(totalSupply)
         setTotalPoolTokens(totalSupply)
       })
     }
@@ -223,7 +224,7 @@ export default function AddLiquidity() {
   }, [fetchPoolTokens, library])
 
   const poolTokenBalance = useAddressBalance(account, exchangeAddress)
-  const exchangeETHBalance = useAddressBalance(exchangeAddress, 'ETH')
+  const exchangeETHBalance = useAddressBalance(exchangeAddress, 'VET')
   const exchangeTokenBalance = useAddressBalance(exchangeAddress, outputCurrency)
 
   const { reserveETH, reserveToken } = useExchangeReserves(outputCurrency)
@@ -288,12 +289,12 @@ export default function AddLiquidity() {
       return (
         <div>
           <div>
-            {t('youAreAdding')} {b(`${inputValue} ETH`)} {t('and')} {b(`${outputValue} ${symbol}`)} {t('intoPool')}
+            {t('youAreAdding')} {b(`${inputValue} VET`)} {t('and')} {b(`${outputValue} ${symbol}`)} {t('intoPool')}
           </div>
           <LastSummaryText>
             {t('youAreSettingExRate')}{' '}
             {b(
-              `1 ETH = ${amountFormatter(
+              `1 VET = ${amountFormatter(
                 getMarketRate(inputValueParsed, outputValueParsed, decimals),
                 18,
                 4,
@@ -312,7 +313,7 @@ export default function AddLiquidity() {
       return (
         <>
           <div>
-            {t('youAreAdding')} {b(`${amountFormatter(inputValueParsed, 18, 4)} ETH`)} {t('and')} {'at most'}{' '}
+            {t('youAreAdding')} {b(`${amountFormatter(inputValueParsed, 18, 4)} VET`)} {t('and')} {'at most'}{' '}
             {b(`${amountFormatter(outputValueMax, decimals, Math.min(decimals, 4))} ${symbol}`)} {t('intoPool')}
           </div>
           <LastSummaryText>
@@ -322,7 +323,7 @@ export default function AddLiquidity() {
             {t('totalSupplyIs')} {b(amountFormatter(totalPoolTokens, 18, 4))}
           </LastSummaryText>
           <LastSummaryText>
-            {t('tokenWorth')} {b(amountFormatter(ethPerLiquidityToken, 18, 4))} ETH {t('and')}{' '}
+            {t('tokenWorth')} {b(amountFormatter(ethPerLiquidityToken, 18, 4))} VET {t('and')}{' '}
             {b(amountFormatter(tokenPerLiquidityToken, decimals, Math.min(decimals, 4)))} {symbol}
           </LastSummaryText>
         </>
@@ -366,31 +367,25 @@ export default function AddLiquidity() {
     })
 
     const deadline = Math.ceil(Date.now() / 1000) + DEADLINE_FROM_NOW
-
-    const estimatedGasLimit = await exchangeContract.estimate.addLiquidity(
+    const { addLiquidity } = exchangeContract.methods;
+    const fn = addLiquidity(
       isNewExchange ? ethers.constants.Zero : liquidityTokensMin,
       isNewExchange ? outputValueParsed : outputValueMax,
       deadline,
-      {
-        value: inputValueParsed
-      }
     )
 
-    const gasLimit = calculateGasMargin(estimatedGasLimit, GAS_MARGIN)
+    const gas = await fn.estimateGas({
+			from: account, 
+			value: inputValueParsed.toString(),
+		}).then(gas => ethers.utils.bigNumberify(gas))
 
-    exchangeContract
-      .addLiquidity(
-        isNewExchange ? ethers.constants.Zero : liquidityTokensMin,
-        isNewExchange ? outputValueParsed : outputValueMax,
-        deadline,
-        {
-          value: inputValueParsed,
-          gasLimit
-        }
-      )
-      .then(response => {
-        addTransaction(response)
-      })
+    fn.send({
+      from: account,
+      gas: calculateGasMargin(gas, GAS_MARGIN),
+      value: inputValueParsed.toString()
+    }, (err, hash) => {
+      addTransaction({ hash })
+    })
   }
 
   function formatBalance(value) {
@@ -558,7 +553,7 @@ export default function AddLiquidity() {
         onValueChange={inputValue => {
           dispatchAddLiquidityState({ type: 'UPDATE_VALUE', payload: { value: inputValue, field: INPUT } })
         }}
-        selectedTokenAddress="ETH"
+        selectedTokenAddress="VET"
         value={inputValue}
         errorMessage={inputError}
         disableTokenSelect
@@ -588,13 +583,13 @@ export default function AddLiquidity() {
         <SummaryPanel>
           <ExchangeRateWrapper>
             <ExchangeRate>{t('exchangeRate')}</ExchangeRate>
-            <span>{marketRate ? `1 ETH = ${amountFormatter(marketRate, 18, 4)} ${symbol}` : ' - '}</span>
+            <span>{marketRate ? `1 VET = ${amountFormatter(marketRate, 18, 4)} ${symbol}` : ' - '}</span>
           </ExchangeRateWrapper>
           <ExchangeRateWrapper>
             <ExchangeRate>{t('currentPoolSize')}</ExchangeRate>
             <span>
               {exchangeETHBalance && exchangeTokenBalance
-                ? `${amountFormatter(exchangeETHBalance, 18, 4)} ETH + ${amountFormatter(
+                ? `${amountFormatter(exchangeETHBalance, 18, 4)} VET + ${amountFormatter(
                     exchangeTokenBalance,
                     decimals,
                     Math.min(4, decimals)
@@ -608,7 +603,7 @@ export default function AddLiquidity() {
             </ExchangeRate>
             <span>
               {ethShare && tokenShare
-                ? `${amountFormatter(ethShare, 18, 4)} ETH + ${amountFormatter(
+                ? `${amountFormatter(ethShare, 18, 4)} VET + ${amountFormatter(
                     tokenShare,
                     decimals,
                     Math.min(4, decimals)

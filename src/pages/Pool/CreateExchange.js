@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import ReactGA from 'react-ga'
 
 import { Button } from '../../theme'
+import { calculateGasMargin } from '../../utils'
 import AddressInputPanel from '../../components/AddressInputPanel'
 import OversizedPanel from '../../components/OversizedPanel'
 import { useFactoryContract } from '../../hooks'
@@ -100,15 +101,20 @@ function CreateExchange({ history, location }) {
   }, [tokenAddress.address, symbol, decimals, exchangeAddress, account, t, tokenAddressError])
 
   async function createExchange() {
-    const estimatedGasLimit = await factory.estimate.createExchange(tokenAddress.address)
+    const { createExchange } = factory.methods;
 
-    factory.createExchange(tokenAddress.address, { gasLimit: estimatedGasLimit }).then(response => {
+    const fn = createExchange(tokenAddress.address)
+    const gas = await fn.estimateGas({ from: account }).then(gas => ethers.utils.bigNumberify(gas))
+
+    fn.send({
+      gas,
+      from: account,
+    }, (err, hash) => {
+      addTransaction({ hash })
       ReactGA.event({
         category: 'Pool',
         action: 'CreateExchange'
       })
-
-      addTransaction(response)
     })
   }
 

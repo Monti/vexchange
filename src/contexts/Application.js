@@ -128,7 +128,7 @@ export function Updater() {
 
       return () => {
         stale = true
-        library.removeListener('block', update)
+        library.currentProvider.removeListener('block', update)
       }
     }
   }, [networkId, library, updateBlockNumber])

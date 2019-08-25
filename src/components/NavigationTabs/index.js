@@ -34,23 +34,23 @@ const BetaMessage = styled.div`
   padding: 0.5rem 1rem;
   padding-right: 2rem;
   margin-bottom: 1rem;
-  border: 1px solid ${({ theme }) => transparentize(0.6, theme.wisteriaPurple)};
-  background-color: ${({ theme }) => transparentize(0.9, theme.wisteriaPurple)};
-  border-radius: 2rem;
+  border: 1px solid ${({ theme }) => transparentize(0.6, theme.vexchangeGreen)};
+  background-color: ${({ theme }) => transparentize(0.9, theme.vexchangeGreen)};
+  border-radius: 3px;
   font-size: 0.75rem;
   line-height: 1rem;
   text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: ${({ theme }) => theme.wisteriaPurple};
+  color: ${({ theme }) => theme.vexchangeGreen};
 
   &:after {
     content: '✕';
     top: 0.5rem;
     right: 1rem;
     position: absolute;
-    color: ${({ theme }) => theme.wisteriaPurple};
+    color: ${({ theme }) => theme.vexchangeGreen};
   }
 `
 
@@ -59,7 +59,7 @@ const Tabs = styled.div`
   align-items: center;
   height: 2.5rem;
   background-color: ${({ theme }) => theme.concreteGray};
-  border-radius: 3rem;
+  border-radius: 3px;
   /* border: 1px solid ${({ theme }) => theme.mercuryGray}; */
   margin-bottom: 1rem;
 `
@@ -75,7 +75,7 @@ const StyledNavLink = styled(NavLink).attrs({
   height: 2.5rem;
   border: 1px solid ${({ theme }) => transparentize(1, theme.mercuryGray)};
   flex: 1 0 auto;
-  border-radius: 3rem;
+  border-radius: 3px;
   outline: none;
   cursor: pointer;
   text-decoration: none;
@@ -85,7 +85,7 @@ const StyledNavLink = styled(NavLink).attrs({
 
   &.${activeClassName} {
     background-color: ${({ theme }) => theme.inputBackground};
-    border-radius: 3rem;
+    border-radius: 3px;
     border: 1px solid ${({ theme }) => theme.mercuryGray};
     box-shadow: 0 4px 8px 0 ${({ theme }) => transparentize(0.95, theme.shadowColor)};
     box-sizing: border-box;

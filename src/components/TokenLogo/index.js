@@ -1,17 +1,17 @@
 import React, { useState } from 'react'
 import styled from 'styled-components'
 
-import { ReactComponent as EthereumLogo } from '../../assets/images/ethereum-logo.svg'
+import { ReactComponent as VeChainLogo } from '../../assets/images/vechain.svg'
 
 const TOKEN_ICON_API = address =>
-  `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${address}/logo.png`
+  `https://raw.githubusercontent.com/vechain/token-registry/master/tokens/main/${address}/token.png`
 const BAD_IMAGES = {}
 
 const Image = styled.img`
   width: ${({ size }) => size};
   height: ${({ size }) => size};
   background-color: white;
-  border-radius: 1rem;
+  border-radius: 3px;
 `
 
 const Emoji = styled.span`
@@ -19,7 +19,7 @@ const Emoji = styled.span`
   height: ${({ size }) => size};
 `
 
-const StyledEthereumLogo = styled(EthereumLogo)`
+const StyledVechainLogo = styled(VeChainLogo)`
   width: ${({ size }) => size};
   height: ${({ size }) => size};
 `
@@ -28,8 +28,8 @@ export default function TokenLogo({ address, size = '1rem', ...rest }) {
   const [error, setError] = useState(false)
 
   let path = ''
-  if (address === 'ETH') {
-    return <StyledEthereumLogo size={size} />
+  if (address === 'VET') {
+    return <StyledVechainLogo size={size} />
   } else if (!error && !BAD_IMAGES[address]) {
     path = TOKEN_ICON_API(address.toLowerCase())
   } else {

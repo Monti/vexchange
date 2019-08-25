@@ -95,9 +95,9 @@ function calculateSlippageBounds(value, token = false, tokenAllowedSlippage, all
 function getSwapType(inputCurrency, outputCurrency) {
   if (!inputCurrency || !outputCurrency) {
     return null
-  } else if (inputCurrency === 'ETH') {
+  } else if (inputCurrency === 'VET') {
     return ETH_TO_TOKEN
-  } else if (outputCurrency === 'ETH') {
+  } else if (outputCurrency === 'VET') {
     return TOKEN_TO_ETH
   } else {
     return TOKEN_TO_TOKEN
@@ -124,7 +124,7 @@ function getInitialSwapState(outputCurrency) {
     independentValue: '', // this is a user input
     dependentValue: '', // this is a calculated number
     independentField: INPUT,
-    inputCurrency: 'ETH',
+    inputCurrency: 'VET',
     outputCurrency: outputCurrency ? outputCurrency : ''
   }
 }
@@ -237,7 +237,7 @@ function getMarketRate(
 
 export default function ExchangePage({ initialCurrency, sending }) {
   const { t } = useTranslation()
-  const { account } = useWeb3Context()
+  const { account, library } = useWeb3Context()
 
   const addTransaction = useTransactionAdder()
 
@@ -343,10 +343,10 @@ export default function ExchangePage({ initialCurrency, sending }) {
   const [showUnlock, setShowUnlock] = useState(false)
   useEffect(() => {
     const inputValueCalculation = independentField === INPUT ? independentValueParsed : dependentValueMaximum
-    if (inputBalance && (inputAllowance || inputCurrency === 'ETH') && inputValueCalculation) {
+    if (inputBalance && (inputAllowance || inputCurrency === 'VET') && inputValueCalculation) {
       if (inputBalance.lt(inputValueCalculation)) {
         setInputError(t('insufficientBalance'))
-      } else if (inputCurrency !== 'ETH' && inputAllowance.lt(inputValueCalculation)) {
+      } else if (inputCurrency !== 'VET' && inputAllowance.lt(inputValueCalculation)) {
         setInputError(t('unlockTokenCont'))
         setShowUnlock(true)
       } else {
@@ -510,7 +510,7 @@ export default function ExchangePage({ initialCurrency, sending }) {
   async function onSwap() {
     const deadline = Math.ceil(Date.now() / 1000) + DEADLINE_FROM_NOW
 
-    let estimate, method, args, value
+    let estimate, args, value
     if (independentField === INPUT) {
       ReactGA.event({
         category: `${swapType}`,
@@ -518,20 +518,17 @@ export default function ExchangePage({ initialCurrency, sending }) {
       })
 
       if (swapType === ETH_TO_TOKEN) {
-        estimate = sending ? contract.estimate.ethToTokenTransferInput : contract.estimate.ethToTokenSwapInput
-        method = sending ? contract.ethToTokenTransferInput : contract.ethToTokenSwapInput
+        estimate = sending ? contract.methods.ethToTokenTransferInput : contract.methods.ethToTokenSwapInput
         args = sending ? [dependentValueMinumum, deadline, recipient.address] : [dependentValueMinumum, deadline]
         value = independentValueParsed
       } else if (swapType === TOKEN_TO_ETH) {
-        estimate = sending ? contract.estimate.tokenToEthTransferInput : contract.estimate.tokenToEthSwapInput
-        method = sending ? contract.tokenToEthTransferInput : contract.tokenToEthSwapInput
+        estimate = sending ? contract.methods.tokenToEthTransferInput : contract.methods.tokenToEthSwapInput
         args = sending
           ? [independentValueParsed, dependentValueMinumum, deadline, recipient.address]
           : [independentValueParsed, dependentValueMinumum, deadline]
         value = ethers.constants.Zero
       } else if (swapType === TOKEN_TO_TOKEN) {
-        estimate = sending ? contract.estimate.tokenToTokenTransferInput : contract.estimate.tokenToTokenSwapInput
-        method = sending ? contract.tokenToTokenTransferInput : contract.tokenToTokenSwapInput
+        estimate = sending ? contract.methods.tokenToTokenTransferInput : contract.methods.tokenToTokenSwapInput
         args = sending
           ? [
               independentValueParsed,
@@ -551,20 +548,17 @@ export default function ExchangePage({ initialCurrency, sending }) {
       })
 
       if (swapType === ETH_TO_TOKEN) {
-        estimate = sending ? contract.estimate.ethToTokenTransferOutput : contract.estimate.ethToTokenSwapOutput
-        method = sending ? contract.ethToTokenTransferOutput : contract.ethToTokenSwapOutput
+        estimate = sending ? contract.methods.ethToTokenTransferOutput : contract.methods.ethToTokenSwapOutput
         args = sending ? [independentValueParsed, deadline, recipient.address] : [independentValueParsed, deadline]
         value = dependentValueMaximum
       } else if (swapType === TOKEN_TO_ETH) {
-        estimate = sending ? contract.estimate.tokenToEthTransferOutput : contract.estimate.tokenToEthSwapOutput
-        method = sending ? contract.tokenToEthTransferOutput : contract.tokenToEthSwapOutput
+        estimate = sending ? contract.methods.tokenToEthTransferOutput : contract.methods.tokenToEthSwapOutput
         args = sending
           ? [independentValueParsed, dependentValueMaximum, deadline, recipient.address]
           : [independentValueParsed, dependentValueMaximum, deadline]
         value = ethers.constants.Zero
       } else if (swapType === TOKEN_TO_TOKEN) {
-        estimate = sending ? contract.estimate.tokenToTokenTransferOutput : contract.estimate.tokenToTokenSwapOutput
-        method = sending ? contract.tokenToTokenTransferOutput : contract.tokenToTokenSwapOutput
+        estimate = sending ? contract.methods.tokenToTokenTransferOutput : contract.methods.tokenToTokenSwapOutput
         args = sending
           ? [
               independentValueParsed,
@@ -579,9 +573,15 @@ export default function ExchangePage({ initialCurrency, sending }) {
       }
     }
 
-    const estimatedGasLimit = await estimate(...args, { value })
-    method(...args, { value, gasLimit: calculateGasMargin(estimatedGasLimit, GAS_MARGIN) }).then(response => {
-      addTransaction(response)
+    const fn = estimate(...args);
+    const gas = await fn.estimateGas({ from: account, value }).then(gas => ethers.utils.bigNumberify(gas))
+
+    fn.send({
+      value: value.toString(),
+      from: account,
+      gas: calculateGasMargin(gas, GAS_MARGIN)
+    }, (err, hash) => {
+      addTransaction({ hash })
     })
   }
 
@@ -598,7 +598,7 @@ export default function ExchangePage({ initialCurrency, sending }) {
         extraText={inputBalanceFormatted && formatBalance(inputBalanceFormatted)}
         extraTextClickHander={() => {
           if (inputBalance && inputDecimals) {
-            const valueToSet = inputCurrency === 'ETH' ? inputBalance.sub(ethers.utils.parseEther('.1')) : inputBalance
+            const valueToSet = inputCurrency === 'VET' ? inputBalance.sub(ethers.utils.parseEther('.1')) : inputBalance
             if (valueToSet.gt(ethers.constants.Zero)) {
               dispatchSwapState({
                 type: 'UPDATE_INDEPENDENT',

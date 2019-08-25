@@ -170,10 +170,12 @@ export default function RemoveLiquidity() {
 
   const { symbol, decimals, exchangeAddress } = useTokenDetails(outputCurrency)
 
-  const [totalPoolTokens, setTotalPoolTokens] = useState()
   const poolTokenBalance = useAddressBalance(account, exchangeAddress)
-  const exchangeETHBalance = useAddressBalance(exchangeAddress, 'ETH')
+  const exchangeETHBalance = useAddressBalance(exchangeAddress, 'VET')
   const exchangeTokenBalance = useAddressBalance(exchangeAddress, outputCurrency)
+  let [totalPoolTokens, setTotalPoolTokens] = useState(0)
+
+	totalPoolTokens = ethers.utils.bigNumberify(totalPoolTokens)
 
   // input validation
   useEffect(() => {
@@ -226,7 +228,7 @@ export default function RemoveLiquidity() {
 
   const fetchPoolTokens = useCallback(() => {
     if (exchange) {
-      exchange.totalSupply().then(totalSupply => {
+      exchange.methods.totalSupply().call().then(totalSupply => {
         setTotalPoolTokens(totalSupply)
       })
     }
@@ -247,21 +249,25 @@ export default function RemoveLiquidity() {
     })
 
     const deadline = Math.ceil(Date.now() / 1000) + DEADLINE_FROM_NOW
+    const { removeLiquidity } = exchange.methods;
 
-    const estimatedGasLimit = await exchange.estimate.removeLiquidity(
+    const fn = removeLiquidity(
       valueParsed,
       ethWithdrawnMin,
       tokenWithdrawnMin,
       deadline
     )
 
-    exchange
-      .removeLiquidity(valueParsed, ethWithdrawnMin, tokenWithdrawnMin, deadline, {
-        gasLimit: calculateGasMargin(estimatedGasLimit, GAS_MARGIN)
-      })
-      .then(response => {
-        addTransaction(response)
-      })
+    const gas = await fn.estimateGas({
+			from: account,
+		}).then(gas => ethers.utils.bigNumberify(gas))
+
+    fn.send({
+      from: account,
+      gas: calculateGasMargin(gas, GAS_MARGIN)
+    }, (err, hash) => {
+      addTransaction({ hash })
+    })
   }
 
   const b = text => <BlueSpan>{text}</BlueSpan>
@@ -275,7 +281,7 @@ export default function RemoveLiquidity() {
     return (
       <div>
         <div>
-          {t('youAreRemoving')} {b(`${amountFormatter(ethWithdrawn, 18, 4)} ETH`)} {t('and')}{' '}
+          {t('youAreRemoving')} {b(`${amountFormatter(ethWithdrawn, 18, 4)} VET`)} {t('and')}{' '}
           {b(`${amountFormatter(tokenWithdrawn, decimals, Math.min(decimals, 4))} ${symbol}`)} {t('outPool')}
         </div>
         <LastSummaryText>
@@ -285,7 +291,7 @@ export default function RemoveLiquidity() {
           {t('totalSupplyIs')} {b(amountFormatter(totalPoolTokens, 18, 4))}
         </LastSummaryText>
         <LastSummaryText>
-          {t('tokenWorth')} {b(amountFormatter(ETHPer, 18, 4))} ETH {t('and')}{' '}
+          {t('tokenWorth')} {b(amountFormatter(ETHPer, 18, 4))} VET {t('and')}{' '}
           {b(amountFormatter(tokenPer, decimals, Math.min(4, decimals)))} {symbol}
         </LastSummaryText>
       </div>
@@ -299,7 +305,7 @@ export default function RemoveLiquidity() {
     if (inputError) {
       contextualInfo = inputError
       isError = true
-    } else if (!outputCurrency || outputCurrency === 'ETH') {
+    } else if (!outputCurrency || outputCurrency === 'VET') {
       contextualInfo = t('selectTokenCont')
     } else if (!valueParsed) {
       contextualInfo = t('enterValueCont')
@@ -365,7 +371,7 @@ export default function RemoveLiquidity() {
           !!(ethWithdrawn && tokenWithdrawn) ? (
             <RemoveLiquidityOutput>
               <RemoveLiquidityOutputText>
-                {`${amountFormatter(ethWithdrawn, 18, 4, false)} ETH`}
+                {`${amountFormatter(ethWithdrawn, 18, 4, false)} VET`}
               </RemoveLiquidityOutputText>
               <RemoveLiquidityOutputPlus> + </RemoveLiquidityOutputPlus>
               <RemoveLiquidityOutputText>
@@ -383,12 +389,12 @@ export default function RemoveLiquidity() {
         <SummaryPanel>
           <ExchangeRateWrapper>
             <ExchangeRate>{t('exchangeRate')}</ExchangeRate>
-            {marketRate ? <span>{`1 ETH = ${amountFormatter(marketRate, 18, 4)} ${symbol}`}</span> : ' - '}
+            {marketRate ? <span>{`1 VET = ${amountFormatter(marketRate, 18, 4)} ${symbol}`}</span> : ' - '}
           </ExchangeRateWrapper>
           <ExchangeRateWrapper>
             <ExchangeRate>{t('currentPoolSize')}</ExchangeRate>
             {exchangeETHBalance && exchangeTokenBalance && (decimals || decimals === 0) ? (
-              <span>{`${amountFormatter(exchangeETHBalance, 18, 4)} ETH + ${amountFormatter(
+              <span>{`${amountFormatter(exchangeETHBalance, 18, 4)} VET + ${amountFormatter(
                 exchangeTokenBalance,
                 decimals,
                 Math.min(decimals, 4)
@@ -403,7 +409,7 @@ export default function RemoveLiquidity() {
             </ExchangeRate>
             {ETHOwnShare && TokenOwnShare ? (
               <span>
-                {`${amountFormatter(ETHOwnShare, 18, 4)} ETH + ${amountFormatter(
+                {`${amountFormatter(ETHOwnShare, 18, 4)} VET + ${amountFormatter(
                   TokenOwnShare,
                   decimals,
                   Math.min(decimals, 4)

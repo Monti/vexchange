@@ -5,7 +5,7 @@ export const Button = styled.button.attrs(({ warning, theme }) => ({
   backgroundColor: warning ? theme.salmonRed : theme.royalBlue
 }))`
   padding: 1rem 2rem 1rem 2rem;
-  border-radius: 3rem;
+  border-radius: 3px;
   cursor: pointer;
   user-select: none;
   font-size: 1rem;

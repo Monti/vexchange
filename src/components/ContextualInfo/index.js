@@ -16,7 +16,7 @@ const SummaryWrapper = styled.div`
 const Details = styled.div`
   background-color: ${({ theme }) => theme.concreteGray};
   padding: 1.5rem;
-  border-radius: 1rem;
+  border-radius: 3px;
   font-size: 0.75rem;
   margin-top: 1rem;
 `

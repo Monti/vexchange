@@ -20,15 +20,6 @@ const HeaderElement = styled.div`
   align-items: center;
 `
 
-const Nod = styled.span`
-  transform: rotate(0deg);
-  transition: transform 150ms ease-out;
-
-  :hover {
-    transform: rotate(-10deg);
-  }
-`
-
 const Title = styled.div`
   display: flex;
   align-items: center;
@@ -38,16 +29,19 @@ const Title = styled.div`
   }
 
   #link {
-    text-decoration-color: ${({ theme }) => theme.UniswapPink};
+    text-decoration-color: ${({ theme }) => theme.vexchangeGreen};
   }
 
   #title {
     display: inline;
     font-size: 1rem;
-    font-weight: 500;
-    color: ${({ theme }) => theme.wisteriaPurple};
+    font-family: 'Rubik', sans-serif;
+    font-weight: 600;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+    color: ${({ theme }) => theme.vexchangeGreen};
     :hover {
-      color: ${({ theme }) => darken(0.1, theme.wisteriaPurple)};
+      color: ${({ theme }) => darken(0.1, theme.vexchangeGreen)};
     }
   }
 `
@@ -57,15 +51,8 @@ export default function Header() {
     <HeaderFrame>
       <HeaderElement>
         <Title>
-          <Nod>
-            <Link id="link" href="https://uniswap.io">
-              <span role="img" aria-label="unicorn">
-                🦄{'  '}
-              </span>
-            </Link>
-          </Nod>
-          <Link id="link" href="https://uniswap.io">
-            <h1 id="title">Uniswap</h1>
+          <Link id="link" href="https://vexchange.io">
+            <h1 id="title">Vexchange</h1>
           </Link>
         </Title>
       </HeaderElement>

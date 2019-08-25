@@ -43,7 +43,7 @@ const TransactionStatusText = styled.span`
 const TransactionState = styled.div`
   background-color: ${({ pending, theme }) =>
     pending ? transparentize(0.95, theme.royalBlue) : transparentize(0.95, theme.connectedGreen)};
-  border-radius: 1.5rem;
+  border-radius: 3px;
   padding: 0.5rem 0.75rem;
   font-weight: 500;
   font-size: 0.75rem;

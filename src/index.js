@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 import ReactGA from 'react-ga'
 import Web3 from 'web3'
 import Web3Provider from 'web3-react'
+import WebFont from 'webfontloader'
 
 import ThemeProvider, { GlobalStyle } from './theme'
 import LocalStorageContextProvider, { Updater as LocalStorageContextUpdater } from './contexts/LocalStorage'
@@ -19,14 +20,24 @@ import InjectedConnector from './InjectedConnector'
 import './i18n'
 
 if (process.env.NODE_ENV === 'production') {
-  ReactGA.initialize('UA-128182339-1')
+  ReactGA.initialize('UA-135474754-1')
 } else {
   ReactGA.initialize('test', { testMode: true })
 }
+
 ReactGA.pageview(window.location.pathname + window.location.search)
 
-const Injected = new InjectedConnector({ supportedNetworks: [Number(process.env.REACT_APP_NETWORK_ID || '1')] })
+const Injected = new InjectedConnector({ supportedNetworks: [Number(process.env.REACT_APP_NETWORK_ID || '74')] })
 const connectors = { Injected }
+
+WebFont.load({
+  google: {
+    families: [
+      'Rubik:900',
+      'Karla'
+    ]
+  }
+});
 
 function ContextProviders({ children }) {
   return (
@@ -57,7 +68,7 @@ function Updaters() {
 }
 
 ReactDOM.render(
-  <Web3Provider connectors={connectors} libraryName="ethers.js">
+  <Web3Provider connectors={connectors} libraryName="web3.js" web3Api={Web3}>
     <ContextProviders>
       <Updaters />
       <ThemeProvider>

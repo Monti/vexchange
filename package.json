@@ -29,7 +29,8 @@
     "styled-components": "^4.2.0",
     "thorify": "^1.3.0",
     "web3": "1.0.0-beta.37",
-    "web3-react": "^5.0.4"
+    "web3-react": "^5.0.4",
+    "webfontloader": "^1.6.28"
   },
   "scripts": {
     "start": "react-scripts start",

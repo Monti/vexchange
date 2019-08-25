@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { useWeb3Context, Connectors } from 'web3-react'
 import { darken, transparentize } from 'polished'
 import Jazzicon from 'jazzicon'
-import { ethers } from 'ethers'
 import { Activity } from 'react-feather'
 import { extend } from 'thorify/dist/extend'
 import Web3 from 'web3'
@@ -24,7 +23,7 @@ const Web3StatusGeneric = styled.button`
   font-size: 0.9rem;
   align-items: center;
   padding: 0.5rem;
-  border-radius: 2rem;
+  border-radius: 3px;
   box-sizing: border-box;
   cursor: pointer;
   user-select: none;
@@ -62,9 +61,6 @@ const Web3StatusConnected = styled(Web3StatusGeneric)`
   font-weight: 400;
   :hover {
 
-    /* > P {
-      color: ${({ theme }) => theme.uniswapPink};
-    } */
     background-color: ${({ pending, theme }) =>
       pending ? transparentize(0.9, theme.royalBlue) : darken(0.05, theme.inputBackground)};
     
@@ -86,7 +82,7 @@ const Text = styled.p`
 const Identicon = styled.div`
   height: 1rem;
   width: 1rem;
-  border-radius: 1.125rem;
+  border-radius: 3px;
   background-color: ${({ theme }) => theme.silverGray};
 `
 

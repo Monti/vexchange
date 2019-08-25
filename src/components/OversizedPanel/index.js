@@ -6,7 +6,7 @@ const Panel = styled.div`
   background-color: ${({ theme }) => theme.concreteGray};
   width: calc(100% - 1rem);
   margin: 0 auto;
-  border-radius: 0.625rem;
+  border-radius: 3px;
 `
 
 const PanelTop = styled.div`

@@ -69,8 +69,8 @@ export function useFetchAllBalances() {
           let balance = null
           let ethRate = null
 
-          if (isAddress(k) || k === 'ETH') {
-            if (k === 'ETH') {
+          if (isAddress(k) || k === 'VET') {
+            if (k === 'VET') {
               balance = await getEtherBalance(account, library).catch(() => null)
               ethRate = ONE
             } else {

@@ -59,11 +59,13 @@ const theme = darkMode => ({
   // blues
   zumthorBlue: darkMode ? '#212529' : '#EBF4FF',
   malibuBlue: darkMode ? '#E67AEF' : '#5CA2FF',
-  royalBlue: darkMode ? '#DC6BE5' : '#2F80ED',
+  royalBlue: darkMode ? '#58a8a6' : '#2F80ED',
   loadingBlue: darkMode ? '#e4f0ff' : '#e4f0ff',
 
+  vexchangeGreen: '#58a8a6',
+
   // purples
-  wisteriaPurple: '#DC6BE5',
+  wisteriaPurple: '#58a8a6',
   // reds
   salmonRed: '#FF6871',
   // orange
@@ -71,11 +73,11 @@ const theme = darkMode => ({
   // yellows
   warningYellow: '#FFE270',
   // pink
-  uniswapPink: '#DC6BE5',
+  uniswapPink: '#58a8a6',
   connectedGreen: '#27AE60',
 
   //specific
-  textHover: darkMode ? theme.uniswapPink : theme.doveGray,
+  textHover: darkMode ? theme.vexchangeGreen : theme.doveGray,
 
   // media queries
   mediaWidth: mediaWidthTemplates,
@@ -92,11 +94,10 @@ export default function ThemeProvider({ children }) {
 
 export const GlobalStyle = createGlobalStyle`
   @import url('https://rsms.me/inter/inter.css');
-  html { font-family: 'Inter', sans-serif; }
-  @supports (font-variation-settings: normal) {
-    html { font-family: 'Inter var', sans-serif; }
+  html {
+    font-family: 'Karla', sans-serif;
   }
-  
+
   html,
   body {
     margin: 0;
@@ -108,7 +109,7 @@ export const GlobalStyle = createGlobalStyle`
 
   body > div {
     height: 100%;
-    overflow: scroll;
+    overflow: auto;
     -webkit-overflow-scrolling: touch;
 }
 

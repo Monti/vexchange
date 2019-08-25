@@ -26,23 +26,20 @@ export function safeAccess(object, path) {
     : null
 }
 
-const ETHERSCAN_PREFIXES = {
-  1: '',
-  3: 'ropsten.',
-  4: 'rinkeby.',
-  5: 'goerli.',
-  42: 'kovan.'
+const VEFORGE_PREFIXES = {
+  74: 'explore.',
+  39: 'testnet.',
 }
 export function getEtherscanLink(networkId, data, type) {
-  const prefix = `https://${ETHERSCAN_PREFIXES[networkId] || ETHERSCAN_PREFIXES[1]}etherscan.io`
+  const prefix = `https://${VEFORGE_PREFIXES[networkId] || VEFORGE_PREFIXES[1]}veforge.com`
 
   switch (type) {
     case 'transaction': {
-      return `${prefix}/tx/${data}`
+      return `${prefix}/transactions/${data}`
     }
     case 'address':
     default: {
-      return `${prefix}/address/${data}`
+      return `${prefix}/accounts/${data}`
     }
   }
 }
@@ -54,15 +51,6 @@ export function getNetworkName(networkId) {
     }
     case 39: {
       return 'the Ropsten Test Network'
-    }
-    case 4: {
-      return 'the Rinkeby Test Network'
-    }
-    case 5: {
-      return 'the Görli Test Network'
-    }
-    case 42: {
-      return 'the Kovan Test Network'
     }
     default: {
       return 'the correct network'
@@ -105,7 +93,7 @@ export function getContract(address, ABI, library, account) {
     throw Error(`Invalid 'address' parameter '${address}'.`)
   }
 
-  return new ethers.Contract(address, ABI, getProviderOrSigner(library, account))
+  return new library.eth.Contract(ABI, address);
 }
 
 // account is optional
@@ -179,7 +167,11 @@ export async function getEtherBalance(address, library) {
   if (!isAddress(address)) {
     throw Error(`Invalid 'address' parameter '${address}'`)
   }
-  return library.getBalance(address)
+
+  let balance = await library.eth.getBalance(address)
+  balance = ethers.utils.bigNumberify(balance)
+
+  return balance
 }
 
 export function formatEthBalance(balance) {
@@ -206,7 +198,10 @@ export async function getTokenBalance(tokenAddress, address, library) {
     throw Error(`Invalid 'tokenAddress' or 'address' parameter '${tokenAddress}' or '${address}'.`)
   }
 
-  return getContract(tokenAddress, ERC20_ABI, library).balanceOf(address)
+  const contract = getContract(tokenAddress, ERC20_ABI, library);
+  let balance = await contract.methods.balanceOf(address).call();
+  balance = ethers.utils.bigNumberify(balance)
+  return balance
 }
 
 // get the token allowance
@@ -218,7 +213,10 @@ export async function getTokenAllowance(address, tokenAddress, spenderAddress, l
     )
   }
 
-  return getContract(tokenAddress, ERC20_ABI, library).allowance(address, spenderAddress)
+  const contract = getContract(tokenAddress, ERC20_ABI, library);
+  let allowance = await contract.methods.allowance(address, spenderAddress).call();
+
+  return allowance
 }
 
 // amount must be a BigNumber, {base,display}Decimals must be Numbers

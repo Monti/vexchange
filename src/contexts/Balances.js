@@ -62,13 +62,13 @@ export function useAddressBalance(address, tokenAddress) {
   useEffect(() => {
     if (
       isAddress(address) &&
-      (tokenAddress === 'ETH' || isAddress(tokenAddress)) &&
+      (tokenAddress === 'VET' || isAddress(tokenAddress)) &&
       (value === undefined || blockNumber !== globalBlockNumber) &&
       (networkId || networkId === 0) &&
       library
     ) {
       let stale = false
-      ;(tokenAddress === 'ETH' ? getEtherBalance(address, library) : getTokenBalance(tokenAddress, address, library))
+      ;(tokenAddress === 'VET' ? getEtherBalance(address, library) : getTokenBalance(tokenAddress, address, library))
         .then(value => {
           if (!stale) {
             update(networkId, address, tokenAddress, value, globalBlockNumber)
@@ -91,7 +91,7 @@ export function useAddressBalance(address, tokenAddress) {
 export function useExchangeReserves(tokenAddress) {
   const { exchangeAddress } = useTokenDetails(tokenAddress)
 
-  const reserveETH = useAddressBalance(exchangeAddress, 'ETH')
+  const reserveETH = useAddressBalance(exchangeAddress, 'VET')
   const reserveToken = useAddressBalance(exchangeAddress, tokenAddress)
 
   return { reserveETH, reserveToken }

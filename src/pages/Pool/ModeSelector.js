@@ -69,7 +69,7 @@ const StyledNavLink = styled(NavLink).attrs({
 
   &.${activeClassName} {
     background-color: ${({ theme }) => theme.inputBackground};
-    border-radius: 3rem;
+    border-radius: 3px;
     border: 1px solid ${({ theme }) => theme.mercuryGray};
     font-weight: 500;
     color: ${({ theme }) => theme.royalBlue};

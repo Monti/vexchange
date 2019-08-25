@@ -1,4 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react'
+import { useWeb3Context } from 'web3-react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ethers } from 'ethers'
@@ -37,7 +38,7 @@ const SubCurrencySelect = styled.button`
   height: 2rem;
   padding: 10px 50px 10px 15px;
   margin-right: -40px;
-  border-radius: 2.5rem;
+  border-radius: 3px;
   outline: none;
   cursor: pointer;
   user-select: none;
@@ -71,7 +72,7 @@ const CurrencySelect = styled.button`
   color: ${({ selected, theme }) => (selected ? theme.textColor : theme.royalBlue)};
   height: 2rem;
   border: 1px solid ${({ selected, theme }) => (selected ? theme.mercuryGray : theme.royalBlue)};
-  border-radius: 2.5rem;
+  border-radius: 3px;
   background-color: ${({ selected, theme }) => (selected ? theme.concreteGray : theme.zumthorBlue)};
   outline: none;
   cursor: pointer;
@@ -110,13 +111,13 @@ const InputPanel = styled.div`
   ${({ theme }) => theme.flexColumnNoWrap}
   box-shadow: 0 4px 8px 0 ${({ theme }) => transparentize(0.95, theme.shadowColor)};
   position: relative;
-  border-radius: 1.25rem;
+  border-radius: 3px;
   background-color: ${({ theme }) => theme.inputBackground};
   z-index: 1;
 `
 
 const Container = styled.div`
-  border-radius: 1.25rem;
+  border-radius: 3px;
   border: 1px solid ${({ error, theme }) => (error ? theme.salmonRed : theme.mercuryGray)};
 
   background-color: ${({ theme }) => theme.inputBackground};
@@ -285,6 +286,7 @@ export default function CurrencyInputPanel({
   const { t } = useTranslation()
 
   const [modalIsOpen, setModalIsOpen] = useState(false)
+  const { account, library } = useWeb3Context()
 
   const tokenContract = useTokenContract(selectedTokenAddress)
   const { exchangeAddress: selectedTokenExchangeAddress } = useTokenDetails(selectedTokenAddress)
@@ -296,24 +298,23 @@ export default function CurrencyInputPanel({
   const allTokens = useAllTokenDetails()
 
   function renderUnlockButton() {
-    if (disableUnlock || !showUnlock || selectedTokenAddress === 'ETH' || !selectedTokenAddress) {
+    if (disableUnlock || !showUnlock || selectedTokenAddress === 'VET' || !selectedTokenAddress) {
       return null
     } else {
       if (!pendingApproval) {
         return (
           <SubCurrencySelect
             onClick={async () => {
-              const estimatedGas = await tokenContract.estimate.approve(
-                selectedTokenExchangeAddress,
-                ethers.constants.MaxUint256
-              )
-              tokenContract
-                .approve(selectedTokenExchangeAddress, ethers.constants.MaxUint256, {
-                  gasLimit: calculateGasMargin(estimatedGas, GAS_MARGIN)
-                })
-                .then(response => {
-                  addTransaction(response, { approval: selectedTokenAddress })
-                })
+              const { approve } = tokenContract.methods;
+              const fn = approve(selectedTokenExchangeAddress, ethers.constants.MaxUint256)
+              const gas = await fn.estimateGas({ from: account }).then(gas => ethers.utils.bigNumberify(gas))
+
+              fn.send({
+                from: account,
+                gas: calculateGasMargin(gas, GAS_MARGIN)
+              }, (err, hash) => {
+                addTransaction({ hash }, { approval: selectedTokenAddress })
+              });
             }}
           >
             {t('unlock')}
@@ -461,8 +462,8 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances }) 
         const aSymbol = allTokens[a].symbol.toLowerCase()
         const bSymbol = allTokens[b].symbol.toLowerCase()
 
-        if (aSymbol === 'ETH'.toLowerCase() || bSymbol === 'ETH'.toLowerCase()) {
-          return aSymbol === bSymbol ? 0 : aSymbol === 'ETH'.toLowerCase() ? -1 : 1
+        if (aSymbol === 'VET'.toLowerCase() || bSymbol === 'VET'.toLowerCase()) {
+          return aSymbol === bSymbol ? 0 : aSymbol === 'VET'.toLowerCase() ? -1 : 1
         }
 
         if (usdAmounts[a] && !usdAmounts[b]) {
@@ -485,7 +486,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances }) 
         let balance
         let usdBalance
         // only update if we have data
-        if (k === 'ETH' && allBalances && allBalances[k]) {
+        if (k === 'VET' && allBalances && allBalances[k]) {
           balance = formatEthBalance(allBalances[k].balance)
           usdBalance = usdAmounts[k]
         } else if (allBalances && allBalances[k]) {

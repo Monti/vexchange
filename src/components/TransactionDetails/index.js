@@ -54,7 +54,7 @@ const QuestionWrapper = styled.button`
   background: none;
   outline: none;
   cursor: default;
-  border-radius: 36px;
+  border-radius: 3px;
 
   :hover,
   :focus {
@@ -89,7 +89,7 @@ const Popup = styled(Flex)`
   background: ${({ theme }) => theme.inputBackground};
   border: 1px solid ${({ theme }) => theme.mercuryGray};
 
-  border-radius: 8px;
+  border-radius: 3px;
 
   animation: ${fadeIn} 0.15s linear;
 
@@ -106,7 +106,7 @@ const FancyButton = styled.button`
   align-items: center;
   min-width: 55px;
   height: 2rem;
-  border-radius: 36px;
+  border-radius: 3px;
   font-size: 12px;
   border: 1px solid ${({ theme }) => theme.mercuryGray};
   outline: none;
@@ -244,7 +244,7 @@ const OptionCustom = styled(FancyButton)`
     width: 100%;
     height: 100%;
     border: 0px;
-    border-radius: 2rem;
+    border-radius: 3px;
   }
 `
 
@@ -259,7 +259,7 @@ const LastSummaryText = styled.div`
 const SlippageSelector = styled.div`
   background-color: ${({ theme }) => darken(0.04, theme.concreteGray)};
   padding: 1rem 1.25rem 1rem 1.25rem;
-  border-radius: 12px;
+  border-radius: 3px;
 `
 
 const Percent = styled.div`
@@ -289,7 +289,7 @@ const TransactionInfo = styled.div`
 const ValueWrapper = styled.span`
   padding: 0.125rem 0.3rem 0.1rem 0.3rem;
   background-color: ${({ theme }) => darken(0.04, theme.concreteGray)};
-  border-radius: 12px;
+  border-radius: 3px;
   font-variant: tabular-nums;
 `
 
