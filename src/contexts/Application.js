@@ -95,7 +95,7 @@ export function Updater() {
             updateUSDPrice(networkId, price)
           }
         })
-        .catch(() => {
+        .catch((err) => {
           if (!stale) {
             updateUSDPrice(networkId, null)
           }
@@ -123,12 +123,11 @@ export function Updater() {
           })
       }
 
-      update()
-      window.thor.on('block', update)
+      const interval = setInterval(update, 5000)
 
       return () => {
         stale = true
-        library.currentProvider.removeListener('block', update)
+        clearInterval(interval)
       }
     }
   }, [networkId, library, updateBlockNumber])

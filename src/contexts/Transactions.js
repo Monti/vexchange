@@ -112,29 +112,23 @@ export function Updater() {
 
   useEffect(() => {
     if ((networkId || networkId === 0) && library) {
-      // eslint-disable-next-line
       let stale = false
       Object.keys(allTransactions)
         .filter(
           hash => !allTransactions[hash][RECEIPT] && allTransactions[hash][BLOCK_NUMBER_CHECKED] !== globalBlockNumber
         )
         .forEach(hash => {
-          const interval = setInterval(async () => {
-            try {
-              const receipt = await library.eth.getTransactionReceipt(hash)
-
-              if (receipt) {
-                finalize(networkId, hash, receipt)
-                clearInterval(interval);
-              } else {
+          library.eth.getTransactionReceipt(hash).then(receipt => {
+            if (!stale) {
+              if (!receipt) {
                 check(networkId, hash, globalBlockNumber)
+              } else {
+                finalize(networkId, hash, receipt)
               }
-
-            } catch(error) {
-              check(networkId, hash, globalBlockNumber)
-              clearInterval(interval);
             }
-          }, 1000);
+          }).catch(() => {
+            check(networkId, hash, globalBlockNumber)
+          })
         })
 
       return () => {

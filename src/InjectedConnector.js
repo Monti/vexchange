@@ -12,7 +12,7 @@ export default class InjectedConnector extends ErrorCodeMixin(Connector, Injecte
 
     const { thor } = window
     if (thor && thor.isComet) {
-      thor.autoRefreshOnNetworkChange = false
+      thor.autoRefreshOnNetworkChange = true
     }
   }
 
