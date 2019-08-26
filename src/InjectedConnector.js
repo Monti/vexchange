@@ -1,4 +1,3 @@
-import Web3 from 'web3';
 import { Connectors } from 'web3-react-thor'
 const { Connector, ErrorCodeMixin } = Connectors
 
