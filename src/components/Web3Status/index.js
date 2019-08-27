@@ -198,7 +198,7 @@ export default function Web3Status() {
         const accountPoll = setInterval(() => {
           web3.eth.getAccounts().then(accounts => {
             if (accounts.length === 0) {
-              setConnector('Network')
+              setConnector('Injected')
             }
           })
         }, 750)

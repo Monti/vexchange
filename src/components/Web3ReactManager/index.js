@@ -59,14 +59,14 @@ export default function Web3ReactManager({ children }) {
             if (accounts.length >= 1) {
               tryToSetConnector(setConnector, setError)
             } else {
-              setConnector('Network', { suppressAndThrowErrors: true }).catch(error => {
+              setConnector('Injected', { suppressAndThrowErrors: true }).catch(error => {
                 setError(error)
               })
             }
           })
         }
       } else {
-        setConnector('Network', { suppressAndThrowErrors: true }).catch(error => {
+        setConnector('Injected', { suppressAndThrowErrors: true }).catch(error => {
           setError(error)
         })
       }
