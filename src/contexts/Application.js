@@ -68,21 +68,17 @@ export default function Provider({ children }) {
 }
 
 export function Updater() {
-  const { networkId, library, connectorName } = useWeb3Context()
+  const { networkId, library } = useWeb3Context()
 
   const globalBlockNumber = useBlockNumber()
   const [, { updateBlockNumber, updateUSDPrice }] = useApplicationContext()
 
   // slow down polling interval
-  useEffect(() => {
-    if (library) {
-      if (connectorName === 'Network') {
-        library.polling = false
-      } else {
-        library.pollingInterval = 5
-      }
-    }
-  }, [library, connectorName])
+  // if (library && connectorName === 'Network' && library.pollingInterval !== 15) {
+  //   library.pollingInterval = 15
+  // } else if (library && library.pollingInterval !== 5) {
+  //   library.pollingInterval = 5
+  // }
 
   // update usd price
   useEffect(() => {
