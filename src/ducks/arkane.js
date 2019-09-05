@@ -37,7 +37,7 @@ const arkane = async (dispatch, getState) => {
 
     extend(web3);
 
-    window.arkaneConnect.checkAuthenticated( { redirectUri: 'https://arkane.vexchange.io' } )
+    window.arkaneConnect.checkAuthenticated()
       .then(result => {
         result.authenticated(auth => {
           dispatch({
