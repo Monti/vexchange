@@ -84,7 +84,10 @@ export default function Footer() {
             <h1 id="title">Code</h1>
           </Link>
           <Link id="link" href="https://arkane.vexchange.io">
-            <h1 id="title">Use Arkane?</h1>
+            <h1 id="title">Arkane</h1>
+          </Link>
+          <Link id="link" href="https://stats.vexchange.io">
+            <h1 id="title">Stats</h1>
           </Link>
         </Title>
       </FooterElement>
