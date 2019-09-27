@@ -44,7 +44,7 @@ class Web3Status extends Component {
   }
 
   setCurrentProvider() {
-    const currentProvider = localStorage.getItem('currentProvider');
+    const currentProvider = localStorage.getItem('provider');
 
     this.setState({ currentProvider });
   }
@@ -65,12 +65,12 @@ class Web3Status extends Component {
   }
 
   switchToCommet() {
-    localStorage.setItem('currentProvider', 'thor');
-    window.location.reload();
+    localStorage.setItem('provider', 'thor');
+    window.location.href('https://vexchange.io');
   }
 
   switchToArkane() {
-    localStorage.setItem('currentProvider', 'arkane');
+    localStorage.setItem('provider', 'arkane');
     window.arkaneConnect.authenticate();
   }
 
