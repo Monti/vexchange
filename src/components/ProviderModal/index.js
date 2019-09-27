@@ -23,7 +23,7 @@ class ProviderModal extends Component {
     const provider = localStorage.getItem('provider');
 
     if (provider === 'thor') {
-      window.location.replace("http://vexchange.io");
+      window.location.replace("http://beta.vexchange.io");
 			return;
     }
 
@@ -41,7 +41,7 @@ class ProviderModal extends Component {
       visible: false
     }, () => {
       localStorage.setItem('provider', 'thor');
-      window.location.href = 'https://vexchange.io';
+      window.location.href = 'https://beta.vexchange.io';
     });
   }
 

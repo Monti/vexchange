@@ -66,7 +66,7 @@ class Web3Status extends Component {
 
   switchToCommet() {
     localStorage.setItem('provider', 'thor');
-    window.location.href('https://vexchange.io');
+    window.location.href('https://beta.vexchange.io');
   }
 
   switchToArkane() {
