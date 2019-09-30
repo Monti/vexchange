@@ -31,9 +31,8 @@ WebFont.load({
 window.addEventListener('load', function () {
   ReactDOM.render(
     <Provider store={store}>
-      <ProviderModal render={provider => (
-        <App provider={provider} />
-      )} />
-    </Provider>, document.getElementById('root')
+      <App provider='arkane' />
+    </Provider>,
+    document.getElementById('root')
   );
 });

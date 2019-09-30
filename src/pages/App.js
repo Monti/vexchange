@@ -22,13 +22,7 @@ class App extends Component {
   componentWillMount() {
     const { initialize, startWatching, provider } = this.props;
 
-    if (provider === 'arkane') {
-      initialize('arkane').then(startWatching);
-    }
-
-    if (provider === 'thor') {
-      initialize('thor').then(startWatching);
-    }
+    initialize('arkane').then(startWatching);
   }
 
   componentWillUpdate() {
