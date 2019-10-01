@@ -20,29 +20,14 @@ class ProviderModal extends Component {
   }
 
   componentDidMount() {
-    const provider = localStorage.getItem('provider');
-
-    if (provider === 'thor') {
-      window.location.replace("http://beta.vexchange.io");
-			return;
-    }
-
-    if (provider) {
-      this.setState({
-        visible: false,
-        provider
-      });
-    }
+    this.setState({
+      visible: false,
+      provider: 'arkane'
+    });
   }
 
   setComet() {
-    this.setState({
-      provider: 'thor',
-      visible: false
-    }, () => {
-      localStorage.setItem('provider', 'thor');
-      window.location.href = 'https://beta.vexchange.io';
-    });
+    window.location.href = 'https://vexchange.io';
   }
 
   setArkane() {
@@ -51,7 +36,6 @@ class ProviderModal extends Component {
       visible: false
     }, () => {
       window.arkaneConnect.authenticate();
-      localStorage.setItem('provider', 'arkane');
     });
   }
 

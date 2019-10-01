@@ -23,10 +23,6 @@ function getArkaneLinks() {
   return links.arkane.chrome;
 }
 
-function getCometLinks() {
-  return links.comet.chrome;
-}
-
 class BlockingWarning extends Component {
   constructor() {
     super();
@@ -35,7 +31,6 @@ class BlockingWarning extends Component {
   }
 
   connectArkane() {
-    localStorage.setItem('provider', 'arkane');
     window.arkaneConnect.authenticate();
   }
 
@@ -70,7 +65,7 @@ class BlockingWarning extends Component {
           <MediaQuery query="(min-width: 768px)">
             {(matches) => {
               if (matches) {
-                return 'Please visit us after installing Comet or Arkane Network.';
+                return 'Please visit us after installing Arkane Network.';
               } else {
                 return 'Unfortunately Comet does not work on mobile. If you would like to use Vexchange on mobile please use Arkane or visit Vexchange on a desktop computer.';
               }
@@ -82,7 +77,6 @@ class BlockingWarning extends Component {
             {(matches) => {
               if (matches) {
                 return [
-                  <img src={CometLogo} key="comet" onClick={() => window.open(getCometLinks(), '_blank')} />,
                   <img src={AkraneLogo} key="arkane" onClick={() => window.open(getArkaneLinks(), '_blank')} />
                 ]
               } else {

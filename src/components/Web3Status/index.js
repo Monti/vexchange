@@ -27,9 +27,8 @@ class Web3Status extends Component {
     };
 
     this.switchToArkane = this.switchToArkane.bind(this);
-    this.switchToCommet = this.switchToCommet.bind(this);
-    this.renderCometMenu = this.renderCometMenu.bind(this);
-    this.renderArkaneMenu = this.renderArkaneMenu.bind(this);
+    this.switchToComet = this.switchToComet.bind(this);
+    this.renderMenu = this.renderMenu.bind(this);
     this.setCurrentProvider = this.setCurrentProvider.bind(this);
   }
 
@@ -44,9 +43,7 @@ class Web3Status extends Component {
   }
 
   setCurrentProvider() {
-    const currentProvider = localStorage.getItem('provider');
-
-    this.setState({ currentProvider });
+    this.setState({ currentProvider: 'arkane' });
   }
 
   handleClick = () => {
@@ -64,13 +61,11 @@ class Web3Status extends Component {
     window.arkaneConnect.manageWallets('VECHAIN');
   }
 
-  switchToCommet() {
-    localStorage.setItem('provider', 'thor');
-    window.location.href('https://beta.vexchange.io');
+  switchToComet() {
+    window.location.href('https://vexchange.io');
   }
 
   switchToArkane() {
-    localStorage.setItem('provider', 'arkane');
     window.arkaneConnect.authenticate();
   }
 
@@ -99,7 +94,7 @@ class Web3Status extends Component {
     });
   }
 
-  renderArkaneMenu() {
+  renderMenu() {
     const { wallets = [] } = this.props;
     return (
       <Menu>
@@ -112,24 +107,11 @@ class Web3Status extends Component {
         <Menu.Item key="manage" onClick={this.manageWallets}>
           Manage Wallets
         </Menu.Item>
-        <Menu.Item key="comet" onClick={this.switchToCommet}>
-          Switch to Comet
-        </Menu.Item>
         <Menu.Item key="logout" onClick={this.logout}>
           Log out of Arkane
         </Menu.Item>
       </Menu>
     );
-  }
-
-  renderCometMenu() {
-    return (
-      <Menu>
-        <Menu.Item key="manage" onClick={this.switchToArkane}>
-          Switch to Arkane
-        </Menu.Item>
-      </Menu>
-    )
   }
 
   renderModal() {
@@ -170,7 +152,7 @@ class Web3Status extends Component {
       <Dropdown
         placement="bottomLeft"
         trigger={['click']}
-        overlay={ currentProvider === 'arkane' ? this.renderArkaneMenu : this.renderCometMenu}>
+        overlay={ this.renderMenu }>
 
         <Button type={ hasPendingTransactions ? 'primary' : ''}>
           <div className={classnames("web3-status", {
