@@ -22,7 +22,7 @@
   "searchOrPasteMobile": "Name, Symbol, or Address",
   "noExchange": "No Exchange Found",
   "exchangeRate": "Exchange Rate",
-  "unknownError": "Oops! An unknown error occurred. Please refresh the page, or visit from another browser or device.",
+  "unknownError": "Oops! An unknown error occurred. Please refresh the page, visit from another browser or device, or install Comet or Arkane Network.",
   "enterValueCont": "Enter a {{ missingCurrencyValue }} value to continue.",
   "selectTokenCont": "Select a token to continue.",
   "noLiquidity": "No liquidity.",
