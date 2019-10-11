@@ -214,12 +214,28 @@ export default function AddLiquidity() {
       })
     }
   }, [exchangeContract])
+
   useEffect(() => {
     fetchPoolTokens()
-    library.currentProvider.on('block', fetchPoolTokens)
+    let accountInterval
 
+    const blockUpdater= async () => {
+      let { number: initialBlock } = await library.eth.getBlock()
+
+      accountInterval = setInterval(async () => {
+        let { number: currentBlock } = await library.eth.getBlock()
+
+        if (initialBlock !== currentBlock) {
+          initialBlock = currentBlock 
+          fetchPoolTokens()
+        }
+      }, 1000);
+
+    }
+
+    blockUpdater();
     return () => {
-      library.currentProvider.removeListener('block', fetchPoolTokens)
+      clearInterval(accountInterval)
     }
   }, [fetchPoolTokens, library])
 
