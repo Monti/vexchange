@@ -1,4 +1,6 @@
 import React, { useReducer, useState, useCallback, useEffect, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
+import { createBrowserHistory } from 'history'
 import { ethers } from 'ethers'
 import { useTranslation } from 'react-i18next'
 import { useWeb3Context } from 'web3-react-thor'
@@ -118,11 +120,19 @@ function calculateSlippageBounds(value) {
   }
 }
 
-const initialAddLiquidityState = {
-  inputValue: '',
-  outputValue: '',
-  lastEditedField: INPUT,
-  outputCurrency: ''
+function calculateMaxOutputVal(value) {
+  if (value) {
+    return value.mul(ethers.utils.bigNumberify(10000)).div(ALLOWED_SLIPPAGE.add(ethers.utils.bigNumberify(10000)))
+  }
+}
+
+function initialAddLiquidityState(state) {
+  return {
+    inputValue: state.ethAmountURL ? state.ethAmountURL : '',
+    outputValue: state.tokenAmountURL && !state.ethAmountURL ? state.tokenAmountURL : '',
+    lastEditedField: state.tokenAmountURL && state.ethAmountURL === '' ? OUTPUT : INPUT,
+    outputCurrency: state.tokenURL ? state.tokenURL : ''
+  }
 }
 
 function addLiquidityStateReducer(state, action) {
@@ -153,7 +163,7 @@ function addLiquidityStateReducer(state, action) {
       }
     }
     default: {
-      return initialAddLiquidityState
+      return initialAddLiquidityState()
     }
   }
 }
@@ -189,11 +199,21 @@ function getMarketRate(reserveETH, reserveToken, decimals, invert = false) {
   return getExchangeRate(reserveETH, 18, reserveToken, decimals, invert)
 }
 
-export default function AddLiquidity() {
+export default function AddLiquidity({ params }) {
   const { t } = useTranslation()
   const { library, active, account } = useWeb3Context()
 
-  const [addLiquidityState, dispatchAddLiquidityState] = useReducer(addLiquidityStateReducer, initialAddLiquidityState)
+  // clear url of query
+  useEffect(() => {
+    const history = createBrowserHistory()
+    history.push(window.location.pathname + '')
+  }, [])
+
+  const [addLiquidityState, dispatchAddLiquidityState] = useReducer(
+    addLiquidityStateReducer,
+    { ethAmountURL: params.ethAmount, tokenAmountURL: params.tokenAmount, tokenURL: params.token },
+    initialAddLiquidityState
+  )
   const { inputValue, outputValue, lastEditedField, outputCurrency } = addLiquidityState
   const inputCurrency = 'VET'
 
@@ -569,6 +589,17 @@ export default function AddLiquidity() {
         onValueChange={inputValue => {
           dispatchAddLiquidityState({ type: 'UPDATE_VALUE', payload: { value: inputValue, field: INPUT } })
         }}
+        extraTextClickHander={() => {
+          if (inputBalance) {
+            const valueToSet = inputBalance.sub(ethers.utils.parseEther('.1'))
+            if (valueToSet.gt(ethers.constants.Zero)) {
+              dispatchAddLiquidityState({
+                type: 'UPDATE_VALUE',
+                payload: { value: amountFormatter(valueToSet, 18, 18, false), field: INPUT }
+              })
+            }
+          }
+        }}
         selectedTokenAddress="VET"
         value={inputValue}
         errorMessage={inputError}
@@ -590,6 +621,17 @@ export default function AddLiquidity() {
         }}
         onValueChange={outputValue => {
           dispatchAddLiquidityState({ type: 'UPDATE_VALUE', payload: { value: outputValue, field: OUTPUT } })
+        }}
+        extraTextClickHander={() => {
+          if (outputBalance) {
+            dispatchAddLiquidityState({
+              type: 'UPDATE_VALUE',
+              payload: {
+                value: amountFormatter(calculateMaxOutputVal(outputBalance), decimals, decimals, false),
+                field: OUTPUT
+              }
+            })
+          }
         }}
         value={outputValue}
         showUnlock={showUnlock}

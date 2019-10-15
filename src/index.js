@@ -15,6 +15,7 @@ import AllowancesContextProvider from './contexts/Allowances'
 import AllBalancesContextProvider from './contexts/AllBalances'
 
 import App from './pages/App'
+import NetworkOnlyConnector from './NetworkOnlyConnector'
 import InjectedConnector from './InjectedConnector'
 
 import './i18n'

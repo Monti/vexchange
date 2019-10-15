@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
+ETHimport React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
 import { useWeb3Context } from 'web3-react-thor'
 import { ethers } from 'ethers'
 
@@ -84,6 +84,14 @@ const INITIAL_TOKENS_CONTEXT = {
       [SYMBOL]: 'SHA',
       [DECIMALS]: 18,
       [EXCHANGE_ADDRESS]: '0xA02C827058203A5278c8FeF60703eE152A7F2C72'
+    }
+  },
+  4: {
+    '0x5592EC0cfb4dbc12D3aB100b257153436a1f0FEa': {
+      [NAME]: 'Dai',
+      [SYMBOL]: 'DAI',
+      [DECIMALS]: 18,
+      [EXCHANGE_ADDRESS]: '0xaF51BaAA766b65E8B3Ee0C2c33186325ED01eBD5'
     }
   }
 }

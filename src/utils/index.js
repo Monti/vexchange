@@ -4,7 +4,7 @@ import FACTORY_ABI from '../constants/abis/factory'
 import EXCHANGE_ABI from '../constants/abis/exchange'
 import ERC20_ABI from '../constants/abis/erc20'
 import ERC20_BYTES32_ABI from '../constants/abis/erc20_bytes32'
-import { FACTORY_ADDRESSES } from '../constants'
+import { FACTORY_ADDRESSES, SUPPORTED_THEMES } from '../constants'
 import { formatFixed } from '@uniswap/sdk'
 
 import UncheckedJsonRpcSigner from './signer'
@@ -30,6 +30,7 @@ const VEFORGE_PREFIXES = {
   74: 'explore.',
   39: 'testnet.',
 }
+
 export function getEtherscanLink(networkId, data, type) {
   const prefix = `https://${VEFORGE_PREFIXES[networkId] || VEFORGE_PREFIXES[1]}veforge.com`
 
@@ -42,6 +43,63 @@ export function getEtherscanLink(networkId, data, type) {
       return `${prefix}/accounts/${data}`
     }
   }
+}
+
+export function getQueryParam(windowLocation, name) {
+  var q = windowLocation.search.match(new RegExp('[?&]' + name + '=([^&#?]*)'))
+  return q && q[1]
+}
+
+export function getAllQueryParams() {
+  let params = {}
+  params.theme = checkSupportedTheme(getQueryParam(window.location, 'theme'))
+
+  params.inputCurrency = isAddress(getQueryParam(window.location, 'inputCurrency'))
+    ? getQueryParam(window.location, 'inputCurrency')
+    : ''
+  params.outputCurrency = isAddress(getQueryParam(window.location, 'outputCurrency'))
+    ? getQueryParam(window.location, 'outputCurrency')
+    : ''
+  params.slippage = !isNaN(getQueryParam(window.location, 'slippage')) ? getQueryParam(window.location, 'slippage') : ''
+  params.exactField = getQueryParam(window.location, 'exactField')
+  params.exactAmount = !isNaN(getQueryParam(window.location, 'exactAmount'))
+    ? getQueryParam(window.location, 'exactAmount')
+    : ''
+  params.theme = checkSupportedTheme(getQueryParam(window.location, 'theme'))
+  params.recipient = isAddress(getQueryParam(window.location, 'recipient'))
+    ? getQueryParam(window.location, 'recipient')
+    : ''
+
+  // Add Liquidity params
+  params.ethAmount = !isNaN(getQueryParam(window.location, 'ethAmount'))
+    ? getQueryParam(window.location, 'ethAmount')
+    : ''
+  params.tokenAmount = !isNaN(getQueryParam(window.location, 'tokenAmount'))
+    ? getQueryParam(window.location, 'tokenAmount')
+    : ''
+  params.token = isAddress(getQueryParam(window.location, 'token')) ? getQueryParam(window.location, 'token') : ''
+
+  // Remove liquidity params
+  params.poolTokenAmount = !isNaN(getQueryParam(window.location, 'poolTokenAmount'))
+    ? getQueryParam(window.location, 'poolTokenAmount')
+    : ''
+  params.poolTokenAddress = isAddress(getQueryParam(window.location, 'poolTokenAddress'))
+    ? getQueryParam(window.location, 'poolTokenAddress')
+    : ''
+
+  // Create Exchange params
+  params.tokenAddress = isAddress(getQueryParam(window.location, 'tokenAddress'))
+    ? getQueryParam(window.location, 'tokenAddress')
+    : ''
+
+  return params
+}
+
+export function checkSupportedTheme(themeName) {
+  if (themeName && themeName.toUpperCase() in SUPPORTED_THEMES) {
+    return themeName.toUpperCase()
+  }
+  return null
 }
 
 export function getNetworkName(networkId) {
@@ -259,10 +317,8 @@ export function amountFormatter(amount, baseDecimals = 18, displayDecimals = 3, 
       // if there is a decimal portion
       else {
         const [wholeComponent, decimalComponent] = stringAmount.split('.')
-        const roundUpAmount = minimumDisplayAmount.div(ethers.constants.Two)
         const roundedDecimalComponent = ethers.utils
           .bigNumberify(decimalComponent.padEnd(baseDecimals, '0'))
-          .add(roundUpAmount)
           .toString()
           .padStart(baseDecimals, '0')
           .substring(0, displayDecimals)
