@@ -1,5 +1,5 @@
 import { ethers } from 'ethers'
-import { Connectors } from 'web3-react'
+import { Connectors } from 'web3-react-thor'
 
 const { Connector } = Connectors
 

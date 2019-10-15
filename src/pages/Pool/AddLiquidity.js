@@ -2,7 +2,6 @@ import React, { useReducer, useState, useCallback, useEffect, useMemo } from 're
 import { useTranslation } from 'react-i18next'
 import { createBrowserHistory } from 'history'
 import { ethers } from 'ethers'
-import { useTranslation } from 'react-i18next'
 import { useWeb3Context } from 'web3-react-thor'
 import ReactGA from 'react-ga'
 import styled from 'styled-components'

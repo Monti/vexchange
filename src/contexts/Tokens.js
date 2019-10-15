@@ -1,4 +1,4 @@
-ETHimport React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
+import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
 import { useWeb3Context } from 'web3-react-thor'
 import { ethers } from 'ethers'
 
