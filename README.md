@@ -1,10 +1,13 @@
 # Vexchange Frontend
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/fa110555-b3c7-4eeb-b840-88a835009c62/deploy-status)](https://app.netlify.com/sites/uniswap/deploys)
+<!-- [![Netlify Status](https://api.netlify.com/api/v1/badges/fa110555-b3c7-4eeb-b840-88a835009c62/deploy-status)](https://app.netlify.com/sites/uniswap/deploys)
 [![Build Status](https://travis-ci.org/Uniswap/uniswap-frontend.svg)](https://travis-ci.org/Uniswap/uniswap-frontend)
-[![Styled With Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://prettier.io/)
+[![Styled With Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://prettier.io/) -->
 
-This an an open source interface for Uniswap - a protocol for decentralized exchange of VeChain tokens.
+This is the codebase powering Vexchange, a decentralized VIP180 exchange.
+
+
+This project and interface is a fork of the Uniswap project:
 
 - Website: [uniswap.io](https://uniswap.io/)
 - Docs: [docs.uniswap.io](https://docs.uniswap.io/)
@@ -36,6 +39,3 @@ To run on a testnet, make a copy of `.env.local.example` named `.env.local`, cha
 
 If deploying with Github Pages, be aware that there's some [tricky client-side routing behavior with `create-react-app`](https://create-react-app.dev/docs/deployment#notes-on-client-side-routing).
 
-## Contributions
-
-**Please open all pull requests against the `beta` branch.** CI checks will run against all PRs. To ensure that your changes will pass, run `yarn check:all` before pushing. If this command fails, you can try to automatically fix problems with `yarn fix:all`, or do it manually.
