@@ -75,7 +75,13 @@ const INITIAL_TOKENS_CONTEXT = {
       [NAME]: 'Yeet Coin',
       [SYMBOL]: 'YEET',
       [DECIMALS]: 18,
-      [EXCHANGE_ADDRESS]: ''
+      [EXCHANGE_ADDRESS]: '0xdC690F1A5De6108239D2D91CfdaA1d19E7Ef7f82'
+    },
+    '0x46209d5e5a49c1d403f4ee3a0a88c3a27e29e58d': {
+      [NAME]: 'Jur',
+      [SYMBOL]: 'JUR',
+      [DECIMALS]: 18,
+      [EXCHANGE_ADDRESS]: '0xfECA5a0C2ffD0C894b986f93B492B572236a347a'
     },
   },
   39: {
