@@ -80,7 +80,7 @@ export default function Footer() {
           <Link id="link" href="https://vechain101.com/2019/01/27/introducing-vexchange-exchange/">
             <h1 id="title">About</h1>
           </Link>
-          <Link id="link" href="https://github.com/Vexchange">
+          <Link id="link" href="https://github.com/Monti/Vexchange">
             <h1 id="title">Code</h1>
           </Link>
           <Link id="link" href="https://arkane.vexchange.io">
