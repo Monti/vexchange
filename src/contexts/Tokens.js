@@ -160,7 +160,7 @@ export function useTokenDetails(tokenAddress) {
     ) {
       let stale = false
 
-      const namePromise = getTokenName(tokenAddress, library).catch(() => null)
+      const namePromise = getTokenName(tokenAddress, library).catch((error) => console.log(error))
       const symbolPromise = getTokenSymbol(tokenAddress, library).catch(() => null)
       const decimalsPromise = getTokenDecimals(tokenAddress, library).catch(() => null)
       const exchangeAddressPromise = getTokenExchangeAddressFromFactory(tokenAddress, networkId, library).catch(
@@ -169,6 +169,7 @@ export function useTokenDetails(tokenAddress) {
 
       Promise.all([namePromise, symbolPromise, decimalsPromise, exchangeAddressPromise]).then(
         ([resolvedName, resolvedSymbol, resolvedDecimals, resolvedExchangeAddress]) => {
+          console.log(resolvedExchangeAddress)
           if (!stale) {
             update(networkId, tokenAddress, resolvedName, resolvedSymbol, resolvedDecimals, resolvedExchangeAddress)
           }

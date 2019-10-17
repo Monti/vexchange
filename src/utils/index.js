@@ -170,11 +170,13 @@ export async function getTokenName(tokenAddress, library) {
     throw Error(`Invalid 'tokenAddress' parameter '${tokenAddress}'.`)
   }
 
-  return getContract(tokenAddress, ERC20_ABI, library)
+  return getContract(tokenAddress, ERC20_ABI, library).methods
     .name()
+    .call()
     .catch(() =>
-      getContract(tokenAddress, ERC20_BYTES32_ABI, library)
+      getContract(tokenAddress, ERC20_BYTES32_ABI, library).methods
         .name()
+        .call()
         .then(bytes32 => ethers.utils.parseBytes32String(bytes32))
     )
     .catch(error => {
@@ -189,11 +191,12 @@ export async function getTokenSymbol(tokenAddress, library) {
     throw Error(`Invalid 'tokenAddress' parameter '${tokenAddress}'.`)
   }
 
-  return getContract(tokenAddress, ERC20_ABI, library)
+  return getContract(tokenAddress, ERC20_ABI, library).methods
     .symbol()
+    .call()
     .catch(() => {
       const contractBytes32 = getContract(tokenAddress, ERC20_BYTES32_ABI, library)
-      return contractBytes32.symbol().then(bytes32 => ethers.utils.parseBytes32String(bytes32))
+      return contractBytes32.methods.symbol().call().then(bytes32 => ethers.utils.parseBytes32String(bytes32))
     })
     .catch(error => {
       error.code = ERROR_CODES.TOKEN_SYMBOL
@@ -207,8 +210,9 @@ export async function getTokenDecimals(tokenAddress, library) {
     throw Error(`Invalid 'tokenAddress' parameter '${tokenAddress}'.`)
   }
 
-  return getContract(tokenAddress, ERC20_ABI, library)
+  return getContract(tokenAddress, ERC20_ABI, library).methods
     .decimals()
+    .call()
     .catch(error => {
       error.code = ERROR_CODES.TOKEN_DECIMALS
       throw error
@@ -217,7 +221,7 @@ export async function getTokenDecimals(tokenAddress, library) {
 
 // get the exchange address for a token from the factory
 export async function getTokenExchangeAddressFromFactory(tokenAddress, networkId, library) {
-  return getFactoryContract(networkId, library).getExchange(tokenAddress)
+  return getFactoryContract(networkId, library).methods.getExchange(tokenAddress).call()
 }
 
 // get the ether balance of an address
