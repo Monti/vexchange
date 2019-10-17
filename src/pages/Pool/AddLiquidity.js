@@ -238,7 +238,7 @@ export default function AddLiquidity({ params }) {
     fetchPoolTokens()
     let accountInterval
 
-    const blockUpdater= async () => {
+    const blockUpdater = async () => {
       let { number: initialBlock } = await library.eth.getBlock()
 
       accountInterval = setInterval(async () => {
@@ -249,8 +249,7 @@ export default function AddLiquidity({ params }) {
           fetchPoolTokens()
         }
       }, 1000);
-
-    }
+    };
 
     blockUpdater();
     return () => {
