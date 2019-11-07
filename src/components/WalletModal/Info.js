@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
-import { useWeb3Context } from 'web3-react-thor'
+import { useWeb3Context } from 'connex-react'
 
 import { getEtherscanLink } from '../../utils'
 import { Link, Spinner } from '../../theme'

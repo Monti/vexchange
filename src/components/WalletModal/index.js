@@ -1,6 +1,6 @@
 import React from 'react'
 import styled, { css } from 'styled-components'
-import { useWeb3Context } from 'web3-react-thor'
+import { useWeb3Context } from 'connex-react'
 
 import Transaction from './Transaction'
 import Copy from './Copy'

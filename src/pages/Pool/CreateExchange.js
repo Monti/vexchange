@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { withRouter } from 'react-router'
-import { useWeb3Context } from 'web3-react-thor'
+import { useWeb3Context } from 'connex-react'
 import { createBrowserHistory } from 'history'
 import { ethers } from 'ethers'
 import styled from 'styled-components'
@@ -99,21 +99,24 @@ function CreateExchange({ location, params }) {
   }, [tokenAddress.address, symbol, decimals, exchangeAddress, account, t, tokenAddressError])
 
   async function createExchange() {
-    const { createExchange } = factory.methods;
+    const { createExchange } = factory.methods
 
     const fn = createExchange(tokenAddress.address)
     const gas = await fn.estimateGas({ from: account }).then(gas => ethers.utils.bigNumberify(gas))
 
-    fn.send({
-      gas,
-      from: account,
-    }, (err, hash) => {
-      addTransaction({ hash })
-      ReactGA.event({
-        category: 'Pool',
-        action: 'CreateExchange'
-      })
-    })
+    fn.send(
+      {
+        gas,
+        from: account
+      },
+      (err, hash) => {
+        addTransaction({ hash })
+        ReactGA.event({
+          category: 'Pool',
+          action: 'CreateExchange'
+        })
+      }
+    )
   }
 
   const isValid = errorMessage === null

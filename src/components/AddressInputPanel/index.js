@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
-import { useWeb3Context } from 'web3-react-thor'
+import { useWeb3Context } from 'connex-react'
 import { transparentize } from 'polished'
 
 import { isAddress } from '../../utils'

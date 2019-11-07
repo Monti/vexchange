@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactGA from 'react-ga'
-import { useWeb3Context } from 'web3-react-thor'
+import { useWeb3Context } from 'connex-react'
 import { createBrowserHistory } from 'history'
 import { ethers } from 'ethers'
 import styled from 'styled-components'
@@ -12,12 +12,13 @@ import ContextualInfo from '../../components/ContextualInfo'
 import OversizedPanel from '../../components/OversizedPanel'
 import ArrowDown from '../../assets/svg/SVGArrowDown'
 
-import { useExchangeContract } from '../../hooks'
 import { useTransactionAdder } from '../../contexts/Transactions'
 import { useTokenDetails } from '../../contexts/Tokens'
 import { useAddressBalance } from '../../contexts/Balances'
 import { useFetchAllBalances } from '../../contexts/AllBalances'
-import { calculateGasMargin, amountFormatter } from '../../utils'
+import { calculateGasMargin, amountFormatter, find } from '../../utils'
+
+import EXCHANGE_ABI from '../../constants/abis/exchange'
 
 // denominated in bips
 const ALLOWED_SLIPPAGE = ethers.utils.bigNumberify(200)
@@ -182,7 +183,7 @@ export default function RemoveLiquidity({ params }) {
   const exchangeTokenBalance = useAddressBalance(exchangeAddress, outputCurrency)
   let [totalPoolTokens, setTotalPoolTokens] = useState(0)
 
-	totalPoolTokens = ethers.utils.bigNumberify(totalPoolTokens)
+  totalPoolTokens = ethers.utils.bigNumberify(totalPoolTokens)
 
   // input validation
   useEffect(() => {
@@ -194,8 +195,6 @@ export default function RemoveLiquidity({ params }) {
       }
     }
   }, [poolTokenBalance, t, valueParsed])
-
-  const exchange = useExchangeContract(exchangeAddress)
 
   const ownershipPercentage =
     poolTokenBalance && totalPoolTokens && !totalPoolTokens.isZero()
@@ -234,24 +233,28 @@ export default function RemoveLiquidity({ params }) {
   const tokenWithdrawnMin = tokenWithdrawn ? calculateSlippageBounds(tokenWithdrawn).minimum : undefined
 
   const fetchPoolTokens = useCallback(() => {
-    if (exchange) {
-      exchange.methods.totalSupply().call().then(totalSupply => {
-        setTotalPoolTokens(totalSupply)
+    if (exchangeAddress) {
+      let abi = find(EXCHANGE_ABI, 'totalSupply')
+      let method = library.thor.account(exchangeAddress).method(abi)
+
+      method.call().then(({ decoded }) => {
+        setTotalPoolTokens(decoded[0])
       })
     }
-  }, [exchange])
+  }, [exchangeAddress, library])
+
   useEffect(() => {
     fetchPoolTokens()
     let accountInterval
 
     const blockUpdater = async () => {
-      let { number: initialBlock } = await library.eth.getBlock()
+      let { number: initialBlock } = await library.thor.block().get()
 
       accountInterval = setInterval(async () => {
-        let { number: currentBlock } = await library.eth.getBlock()
+        let { number: currentBlock } = await library.thor.block().get()
 
         if (initialBlock !== currentBlock) {
-          initialBlock = currentBlock 
+          initialBlock = currentBlock
           fetchPoolTokens()
         }
       }, 1000)
@@ -270,24 +273,15 @@ export default function RemoveLiquidity({ params }) {
     })
 
     const deadline = Math.ceil(Date.now() / 1000) + DEADLINE_FROM_NOW
-    const { removeLiquidity } = exchange.methods;
+    const signingService = window.connex.vendor.sign('tx')
 
-    const fn = removeLiquidity(
-      valueParsed,
-      ethWithdrawnMin,
-      tokenWithdrawnMin,
-      deadline
-    )
+    let abi = find(EXCHANGE_ABI, 'removeLiquidity')
+    let method = library.thor.account(exchangeAddress).method(abi)
 
-    const gas = await fn.estimateGas({
-			from: account,
-		}).then(gas => ethers.utils.bigNumberify(gas))
+    const clause = method.asClause(valueParsed, ethWithdrawnMin, tokenWithdrawnMin, deadline)
 
-    fn.send({
-      from: account,
-      gas: calculateGasMargin(gas, GAS_MARGIN)
-    }, (err, hash) => {
-      addTransaction({ hash })
+    signingService.request([{ ...clause }]).then(({ txid }) => {
+      addTransaction({ hash: txid })
     })
   }
 

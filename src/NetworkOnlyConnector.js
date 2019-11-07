@@ -1,5 +1,5 @@
 import { ethers } from 'ethers'
-import { Connectors } from 'web3-react-thor'
+import { Connectors } from 'connex-react'
 
 const { Connector } = Connectors
 
@@ -37,7 +37,10 @@ export default class NetworkOnlyConnector extends Connector {
   }
 
   async getNetworkId(provider) {
-    const networkId = await provider.getNetwork().then(network => network.chainId)
+    const block = await provider.thor.block(0).get()
+    const hex = ethers.utils.arrayify(block.id)
+    const networkId = Array.from(hex).pop()
+
     return super._validateNetworkId(networkId)
   }
 

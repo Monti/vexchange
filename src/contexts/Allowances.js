@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
 import { ethers } from 'ethers'
-import { useWeb3Context } from 'web3-react-thor'
+import { useWeb3Context } from 'connex-react'
 
 import { safeAccess, isAddress, getTokenAllowance } from '../utils'
 import { useBlockNumber } from './Application'

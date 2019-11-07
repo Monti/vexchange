@@ -170,18 +170,18 @@ export async function getTokenName(tokenAddress, library) {
     throw Error(`Invalid 'tokenAddress' parameter '${tokenAddress}'.`)
   }
 
-  return getContract(tokenAddress, ERC20_ABI, library).methods
-    .name()
-    .call()
-    .catch(() =>
-      getContract(tokenAddress, ERC20_BYTES32_ABI, library).methods
-        .name()
-        .call()
-        .then(bytes32 => ethers.utils.parseBytes32String(bytes32))
-    )
-    .catch(error => {
-      error.code = ERROR_CODES.TOKEN_SYMBOL
-      throw error
+  let symbolAbi = find(ERC20_ABI, 'name')
+  let method = library.thor.account(tokenAddress).method(symbolAbi)
+
+  return method.call()
+    .then(({ decoded }) => {
+      return decoded[0]
+    })
+    .catch(() => {
+      symbolAbi = find(ERC20_BYTES32_ABI, 'symbol')
+      method = library.thor.account(tokenAddress).method(symbolAbi)
+
+      return method.call().then(({ decoded }) => ethers.utils.parseBytes32String(decoded[0]))
     })
 }
 
@@ -191,12 +191,18 @@ export async function getTokenSymbol(tokenAddress, library) {
     throw Error(`Invalid 'tokenAddress' parameter '${tokenAddress}'.`)
   }
 
-  return getContract(tokenAddress, ERC20_ABI, library).methods
-    .symbol()
-    .call()
+  let symbolAbi = find(ERC20_ABI, 'symbol')
+  let method = library.thor.account(tokenAddress).method(symbolAbi)
+
+  return method.call()
+    .then(({ decoded }) => {
+      return decoded[0]
+    })
     .catch(() => {
-      const contractBytes32 = getContract(tokenAddress, ERC20_BYTES32_ABI, library)
-      return contractBytes32.methods.symbol().call().then(bytes32 => ethers.utils.parseBytes32String(bytes32))
+      symbolAbi = find(ERC20_BYTES32_ABI, 'symbol')
+      method = library.thor.account(tokenAddress).method(symbolAbi)
+
+      return method.call().then(({ decoded }) => ethers.utils.parseBytes32String(decoded[0]))
     })
     .catch(error => {
       error.code = ERROR_CODES.TOKEN_SYMBOL
@@ -210,18 +216,32 @@ export async function getTokenDecimals(tokenAddress, library) {
     throw Error(`Invalid 'tokenAddress' parameter '${tokenAddress}'.`)
   }
 
-  return getContract(tokenAddress, ERC20_ABI, library).methods
-    .decimals()
-    .call()
+  const abi = find(ERC20_ABI, 'decimals')
+  const method = library.thor.account(tokenAddress).method(abi)
+
+  return method.call()
+    .then(({ decoded }) => {
+      return decoded[0]
+    })
     .catch(error => {
       error.code = ERROR_CODES.TOKEN_DECIMALS
       throw error
     })
 }
 
+// export function getFactoryContract(networkId, library, account) {
+//   return getContract(FACTORY_ADDRESSES[networkId], FACTORY_ABI, library, account)
+// }
+
 // get the exchange address for a token from the factory
 export async function getTokenExchangeAddressFromFactory(tokenAddress, networkId, library) {
-  return getFactoryContract(networkId, library).methods.getExchange(tokenAddress).call()
+
+  const abi = find(FACTORY_ABI, 'getExchange')
+  const method = library.thor.account(FACTORY_ADDRESSES[networkId]).method(abi)
+  return method.call()
+    .then(({ decoded }) => {
+      return decoded[0]
+    })
 }
 
 // get the ether balance of an address
@@ -230,7 +250,7 @@ export async function getEtherBalance(address, library) {
     throw Error(`Invalid 'address' parameter '${address}'`)
   }
 
-  let balance = await library.eth.getBalance(address)
+  let { balance } = await library.thor.account(address).get()
   balance = ethers.utils.bigNumberify(balance)
 
   return balance
@@ -254,14 +274,19 @@ export function formatToUsd(price) {
   return usdPrice
 }
 
+export function find(collection, name) {
+  return collection.find(el => el.name === name)
+}
+
 // get the token balance of an address
 export async function getTokenBalance(tokenAddress, address, library) {
   if (!isAddress(tokenAddress) || !isAddress(address)) {
     throw Error(`Invalid 'tokenAddress' or 'address' parameter '${tokenAddress}' or '${address}'.`)
   }
 
-  const contract = getContract(tokenAddress, ERC20_ABI, library);
-  let balance = await contract.methods.balanceOf(address).call();
+  const abi = find(ERC20_ABI, 'balanceOf')
+  const method = library.thor.account(tokenAddress).method(abi)
+  let { decoded: { balance } } = await method.call(address)
   balance = ethers.utils.bigNumberify(balance)
   return balance
 }
@@ -275,8 +300,10 @@ export async function getTokenAllowance(address, tokenAddress, spenderAddress, l
     )
   }
 
-  const contract = getContract(tokenAddress, ERC20_ABI, library);
-  let allowance = await contract.methods.allowance(address, spenderAddress).call();
+  const abi = find(ERC20_ABI, 'allowance')
+  const method = library.thor.account(tokenAddress).method(abi)
+  const { decoded } = await method.call(address, spenderAddress)
+  const allowance = ethers.utils.bigNumberify(decoded[0])
 
   return allowance
 }

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
-import { useWeb3Context } from 'web3-react-thor'
+import { useWeb3Context } from 'connex-react'
 import { ethers } from 'ethers'
 
 import {
@@ -82,7 +82,7 @@ const INITIAL_TOKENS_CONTEXT = {
       [SYMBOL]: 'JUR',
       [DECIMALS]: 18,
       [EXCHANGE_ADDRESS]: '0xfECA5a0C2ffD0C894b986f93B492B572236a347a'
-    },
+    }
   },
   39: {
     '0x0000000000000000000000000000456e65726779': {
@@ -160,7 +160,7 @@ export function useTokenDetails(tokenAddress) {
     ) {
       let stale = false
 
-      const namePromise = getTokenName(tokenAddress, library).catch((error) => console.log(error))
+      const namePromise = getTokenName(tokenAddress, library).catch(error => console.log(error))
       const symbolPromise = getTokenSymbol(tokenAddress, library).catch(() => null)
       const decimalsPromise = getTokenDecimals(tokenAddress, library).catch(() => null)
       const exchangeAddressPromise = getTokenExchangeAddressFromFactory(tokenAddress, networkId, library).catch(
@@ -169,7 +169,6 @@ export function useTokenDetails(tokenAddress) {
 
       Promise.all([namePromise, symbolPromise, decimalsPromise, exchangeAddressPromise]).then(
         ([resolvedName, resolvedSymbol, resolvedDecimals, resolvedExchangeAddress]) => {
-          console.log(resolvedExchangeAddress)
           if (!stale) {
             update(networkId, tokenAddress, resolvedName, resolvedSymbol, resolvedDecimals, resolvedExchangeAddress)
           }

@@ -2,7 +2,7 @@ import React, { useReducer, useState, useCallback, useEffect, useMemo } from 're
 import { useTranslation } from 'react-i18next'
 import { createBrowserHistory } from 'history'
 import { ethers } from 'ethers'
-import { useWeb3Context } from 'web3-react-thor'
+import { useWeb3Context } from 'connex-react'
 import ReactGA from 'react-ga'
 import styled from 'styled-components'
 
@@ -13,12 +13,14 @@ import ContextualInfo from '../../components/ContextualInfo'
 import { ReactComponent as Plus } from '../../assets/images/plus-blue.svg'
 
 import { useExchangeContract } from '../../hooks'
-import { amountFormatter, calculateGasMargin } from '../../utils'
+import { amountFormatter, calculateGasMargin, find } from '../../utils'
 import { useTransactionAdder } from '../../contexts/Transactions'
 import { useTokenDetails } from '../../contexts/Tokens'
 import { useFetchAllBalances } from '../../contexts/AllBalances'
 import { useAddressBalance, useExchangeReserves } from '../../contexts/Balances'
 import { useAddressAllowance } from '../../contexts/Allowances'
+
+import EXCHANGE_ABI from '../../constants/abis/exchange'
 
 const INPUT = 0
 const OUTPUT = 1
@@ -225,33 +227,37 @@ export default function AddLiquidity({ params }) {
   const exchangeContract = useExchangeContract(exchangeAddress)
 
   const [totalPoolTokens, setTotalPoolTokens] = useState()
+
   const fetchPoolTokens = useCallback(() => {
-    if (exchangeContract) {
-      exchangeContract.methods.totalSupply().call().then(totalSupply => {
-        totalSupply = ethers.utils.bigNumberify(totalSupply)
+    if (exchangeAddress) {
+      let abi = find(EXCHANGE_ABI, 'totalSupply')
+      let method = library.thor.account(exchangeAddress).method(abi)
+
+      method.call().then(({ decoded }) => {
+        const totalSupply = ethers.utils.bigNumberify(decoded[0])
         setTotalPoolTokens(totalSupply)
       })
     }
-  }, [exchangeContract])
+  }, [exchangeAddress, library])
 
   useEffect(() => {
     fetchPoolTokens()
     let accountInterval
 
     const blockUpdater = async () => {
-      let { number: initialBlock } = await library.eth.getBlock()
+      let { number: initialBlock } = await library.thor.block().get()
 
       accountInterval = setInterval(async () => {
-        let { number: currentBlock } = await library.eth.getBlock()
+        let { number: currentBlock } = await library.thor.block().get()
 
         if (initialBlock !== currentBlock) {
-          initialBlock = currentBlock 
+          initialBlock = currentBlock
           fetchPoolTokens()
         }
-      }, 1000);
-    };
+      }, 1000)
+    }
 
-    blockUpdater();
+    blockUpdater()
     return () => {
       clearInterval(accountInterval)
     }
@@ -401,24 +407,22 @@ export default function AddLiquidity({ params }) {
     })
 
     const deadline = Math.ceil(Date.now() / 1000) + DEADLINE_FROM_NOW
-    const { addLiquidity } = exchangeContract.methods;
-    const fn = addLiquidity(
+
+    const abi = find(EXCHANGE_ABI, 'addLiquidity')
+
+    const signingService = window.connex.vendor.sign('tx')
+    const method = window.connex.thor.account(exchangeAddress).method(abi)
+
+    method.value(inputValueParsed.toString())
+
+    const clause = method.asClause(
       isNewExchange ? ethers.constants.Zero : liquidityTokensMin,
       isNewExchange ? outputValueParsed : outputValueMax,
-      deadline,
+      deadline
     )
 
-    const gas = await fn.estimateGas({
-			from: account, 
-			value: inputValueParsed.toString(),
-		}).then(gas => ethers.utils.bigNumberify(gas))
-
-    fn.send({
-      from: account,
-      gas: calculateGasMargin(gas, GAS_MARGIN),
-      value: inputValueParsed.toString()
-    }, (err, hash) => {
-      addTransaction({ hash })
+    signingService.request([{ ...clause }]).then(({ txid }) => {
+      addTransaction({ hash: txid })
     })
   }
 

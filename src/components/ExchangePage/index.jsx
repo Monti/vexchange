@@ -3,7 +3,7 @@ import ReactGA from 'react-ga'
 import { createBrowserHistory } from 'history'
 
 import { useTranslation } from 'react-i18next'
-import { useWeb3Context } from 'web3-react-thor'
+import { useWeb3Context } from 'connex-react'
 
 import { ethers } from 'ethers'
 import styled from 'styled-components'
@@ -14,13 +14,14 @@ import AddressInputPanel from '../AddressInputPanel'
 import OversizedPanel from '../OversizedPanel'
 import TransactionDetails from '../TransactionDetails'
 import ArrowDown from '../../assets/svg/SVGArrowDown'
-import { amountFormatter, calculateGasMargin } from '../../utils'
-import { useExchangeContract } from '../../hooks'
+import { amountFormatter, calculateGasMargin, find } from '../../utils'
 import { useTokenDetails } from '../../contexts/Tokens'
 import { useTransactionAdder } from '../../contexts/Transactions'
 import { useAddressBalance, useExchangeReserves } from '../../contexts/Balances'
 import { useFetchAllBalances } from '../../contexts/AllBalances'
 import { useAddressAllowance } from '../../contexts/Allowances'
+
+import EXCHANGE_ABI from '../../constants/abis/exchange'
 
 const INPUT = 0
 const OUTPUT = 1
@@ -127,7 +128,11 @@ function getInitialSwapState(state) {
     independentField: state.exactFieldURL === 'output' ? OUTPUT : INPUT,
     inputCurrency: state.inputCurrencyURL ? state.inputCurrencyURL : 'VET',
     outputCurrency: state.outputCurrencyURL
-      ? state.outputCurrencyURL
+      ? state.outputCurrencyURL === 'VET'
+        ? state.inputCurrencyURL && state.inputCurrencyURL !== 'VET'
+          ? 'VET'
+          : ''
+        : state.outputCurrencyURL
       : state.initialCurrency
       ? state.initialCurrency
       : ''
@@ -304,9 +309,9 @@ export default function ExchangePage({ initialCurrency, sending = false, params 
     outputCurrency
   )
 
-  const inputExchangeContract = useExchangeContract(inputExchangeAddress)
-  const outputExchangeContract = useExchangeContract(outputExchangeAddress)
-  const contract = swapType === ETH_TO_TOKEN ? outputExchangeContract : inputExchangeContract
+  // const inputExchangeContract = useExchangeContract(inputExchangeAddress)
+  // const outputExchangeContract = useExchangeContract(outputExchangeAddress)
+  const exchangeAddress = swapType === ETH_TO_TOKEN ? outputExchangeAddress : inputExchangeAddress
 
   // get input allowance
   const inputAllowance = useAddressAllowance(account, inputCurrency, inputExchangeAddress)
@@ -352,7 +357,7 @@ export default function ExchangePage({ initialCurrency, sending = false, params 
           setIndependentValueParsed(parsedValue)
           setIndependentError(null)
         }
-      } catch {
+      } catch (error) {
         setIndependentError(t('inputNotValid'))
       }
 
@@ -520,7 +525,7 @@ export default function ExchangePage({ initialCurrency, sending = false, params 
   )
 
   const percentSlippage =
-    exchangeRate && marketRate
+    exchangeRate && marketRate && marketRate.toString() !== '0'
       ? exchangeRate
           .sub(marketRate)
           .abs()
@@ -547,7 +552,7 @@ export default function ExchangePage({ initialCurrency, sending = false, params 
   async function onSwap() {
     const deadline = Math.ceil(Date.now() / 1000) + DEADLINE_FROM_NOW
 
-    let estimate, args, value
+    let estimate, args, value, abi
     if (independentField === INPUT) {
       ReactGA.event({
         category: `${swapType}`,
@@ -555,17 +560,17 @@ export default function ExchangePage({ initialCurrency, sending = false, params 
       })
 
       if (swapType === ETH_TO_TOKEN) {
-        estimate = sending ? contract.methods.ethToTokenTransferInput : contract.methods.ethToTokenSwapInput
+        abi = sending ? find(EXCHANGE_ABI, 'ethToTokenTransferInput') : find(EXCHANGE_ABI, 'ethToTokenSwapInput')
         args = sending ? [dependentValueMinumum, deadline, recipient.address] : [dependentValueMinumum, deadline]
         value = independentValueParsed
       } else if (swapType === TOKEN_TO_ETH) {
-        estimate = sending ? contract.methods.tokenToEthTransferInput : contract.methods.tokenToEthSwapInput
+        abi = sending ? find(EXCHANGE_ABI, 'tokenToEthTransferInput') : find(EXCHANGE_ABI, 'tokenToEthSwapInput')
         args = sending
           ? [independentValueParsed, dependentValueMinumum, deadline, recipient.address]
           : [independentValueParsed, dependentValueMinumum, deadline]
         value = ethers.constants.Zero
       } else if (swapType === TOKEN_TO_TOKEN) {
-        estimate = sending ? contract.methods.tokenToTokenTransferInput : contract.methods.tokenToTokenSwapInput
+        abi = sending ? find(EXCHANGE_ABI, 'tokenToTokenTransferInput') : find(EXCHANGE_ABI, 'tokenToTokenSwapInput')
         args = sending
           ? [
               independentValueParsed,
@@ -585,17 +590,17 @@ export default function ExchangePage({ initialCurrency, sending = false, params 
       })
 
       if (swapType === ETH_TO_TOKEN) {
-        estimate = sending ? contract.methods.ethToTokenTransferOutput : contract.methods.ethToTokenSwapOutput
+        abi = sending ? find(EXCHANGE_ABI, 'ethToTokenTransferOutput') : find(EXCHANGE_ABI, 'ethToTokenSwapOutput')
         args = sending ? [independentValueParsed, deadline, recipient.address] : [independentValueParsed, deadline]
         value = dependentValueMaximum
       } else if (swapType === TOKEN_TO_ETH) {
-        estimate = sending ? contract.methods.tokenToEthTransferOutput : contract.methods.tokenToEthSwapOutput
+        abi = sending ? find(EXCHANGE_ABI, 'tokenToEthTransferOutput') : find(EXCHANGE_ABI, 'tokenToEthSwapOutput')
         args = sending
           ? [independentValueParsed, dependentValueMaximum, deadline, recipient.address]
           : [independentValueParsed, dependentValueMaximum, deadline]
         value = ethers.constants.Zero
       } else if (swapType === TOKEN_TO_TOKEN) {
-        estimate = sending ? contract.methods.tokenToTokenTransferOutput : contract.methods.tokenToTokenSwapOutput
+        abi = sending ? find(EXCHANGE_ABI, 'tokenToTokenTransferOutput') : find(EXCHANGE_ABI, 'tokenToTokenSwapOutput')
         args = sending
           ? [
               independentValueParsed,
@@ -610,16 +615,22 @@ export default function ExchangePage({ initialCurrency, sending = false, params 
       }
     }
 
-    const fn = estimate(...args);
-    const gas = await fn.estimateGas({ from: account, value }).then(gas => ethers.utils.bigNumberify(gas))
+    const signingService = window.connex.vendor.sign('tx')
+    const method = window.connex.thor.account(exchangeAddress).method(abi)
 
-    fn.send({
-      value: value.toString(),
-      from: account,
-      gas: calculateGasMargin(gas, GAS_MARGIN)
-    }, (err, hash) => {
-      addTransaction({ hash })
-    })
+    method.value(value.toString())
+
+    const clause = method.asClause(...args)
+
+    signingService
+      .request([
+        {
+          ...clause
+        }
+      ])
+      .then(({ txid }) => {
+        addTransaction({ hash: txid })
+      })
   }
 
   const [customSlippageError, setcustomSlippageError] = useState('')
@@ -707,13 +718,13 @@ export default function ExchangePage({ initialCurrency, sending = false, params 
           {inverted ? (
             <span>
               {exchangeRate
-                ? `1 ${inputSymbol} = ${amountFormatter(exchangeRate, 18, 4, false)} ${outputSymbol}`
+                ? `1 ${inputSymbol} = ${amountFormatter(exchangeRate, 18, 6, false)} ${outputSymbol}`
                 : ' - '}
             </span>
           ) : (
             <span>
               {exchangeRate
-                ? `1 ${outputSymbol} = ${amountFormatter(exchangeRateInverted, 18, 4, false)} ${inputSymbol}`
+                ? `1 ${outputSymbol} = ${amountFormatter(exchangeRateInverted, 18, 6, false)} ${inputSymbol}`
                 : ' - '}
             </span>
           )}

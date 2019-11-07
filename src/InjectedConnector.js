@@ -1,4 +1,4 @@
-import { Connectors } from 'web3-react-thor'
+import { Connectors } from 'connex-react'
 const { Connector, ErrorCodeMixin } = Connectors
 
 const InjectedConnectorErrorCodes = ['ETHEREUM_ACCESS_DENIED', 'NO_WEB3', 'UNLOCK_REQUIRED']
@@ -47,8 +47,8 @@ export default class InjectedConnector extends ErrorCodeMixin(Connector, Injecte
   }
 
   async getProvider() {
-    const { thor } = window
-    return thor
+    const { connex } = window
+    return connex
   }
 
   async getAccount(provider) {

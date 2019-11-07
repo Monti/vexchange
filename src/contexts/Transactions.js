@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
-import { useWeb3Context } from 'web3-react-thor'
+import { useWeb3Context } from 'connex-react'
 
 import { safeAccess } from '../utils'
 import { useBlockNumber } from './Application'
@@ -118,17 +118,21 @@ export function Updater() {
           hash => !allTransactions[hash][RECEIPT] && allTransactions[hash][BLOCK_NUMBER_CHECKED] !== globalBlockNumber
         )
         .forEach(hash => {
-          library.eth.getTransactionReceipt(hash).then(receipt => {
-            if (!stale) {
-              if (!receipt) {
-                check(networkId, hash, globalBlockNumber)
-              } else {
-                finalize(networkId, hash, receipt)
+          library.thor
+            .transaction(hash)
+            .getReceipt()
+            .then(receipt => {
+              if (!stale) {
+                if (!receipt) {
+                  check(networkId, hash, globalBlockNumber)
+                } else {
+                  finalize(networkId, hash, receipt)
+                }
               }
-            }
-          }).catch(() => {
-            check(networkId, hash, globalBlockNumber)
-          })
+            })
+            .catch(() => {
+              check(networkId, hash, globalBlockNumber)
+            })
         })
 
       return () => {

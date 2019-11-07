@@ -1,7 +1,7 @@
 import React, { useReducer, useEffect, useRef } from 'react'
 import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
-import { useWeb3Context, Connectors } from 'web3-react-thor'
+import { useWeb3Context, Connectors } from 'connex-react'
 import { darken, transparentize } from 'polished'
 import { picasso } from '@vechain/picasso'
 import { Activity } from 'react-feather'
@@ -164,6 +164,7 @@ export default function Web3Status() {
 
     if (connectorName !== 'Injected') {
       if (connectorName === 'Network' && thor && thor.on && thor.removeListener) {
+        console.log('hit')
         function tryToActivateInjected() {
           // if calling enable won't pop an approve modal, then try to activate injected...
           web3.eth.getAccounts().then(accounts => {
@@ -193,7 +194,7 @@ export default function Web3Status() {
         }
       }
     } else {
-      // ...poll to check the accounts array, and if it's ever 0 i.e. the user logged out, update the connector
+      //...poll to check the accounts array, and if it's ever 0 i.e. the user logged out, update the connector
       if (thor) {
         const accountPoll = setInterval(() => {
           web3.eth.getAccounts().then(accounts => {
@@ -202,7 +203,6 @@ export default function Web3Status() {
             }
           })
         }, 750)
-
         return () => {
           clearInterval(accountPoll)
         }
@@ -229,11 +229,11 @@ export default function Web3Status() {
     if (ref.current) {
       ref.current.innerHTML = ''
       if (account) {
-        const div = document.createElement("div")
+        const div = document.createElement('div')
         const svg = picasso(account)
         div.style.background = `no-repeat url('data:image/svg+xml;utf8,${svg}')`
-        div.style.height = '16px' 
-				div.style.width = '16px'
+        div.style.height = '16px'
+        div.style.width = '16px'
 
         ref.current.appendChild(div)
       }

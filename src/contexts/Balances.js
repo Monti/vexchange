@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
-import { useWeb3Context } from 'web3-react-thor'
+import { useWeb3Context } from 'connex-react'
+import { ethers } from 'ethers'
 
 import { safeAccess, isAddress, getEtherBalance, getTokenBalance } from '../utils'
 import { useBlockNumber } from './Application'
@@ -91,8 +92,16 @@ export function useAddressBalance(address, tokenAddress) {
 export function useExchangeReserves(tokenAddress) {
   const { exchangeAddress } = useTokenDetails(tokenAddress)
 
-  const reserveETH = useAddressBalance(exchangeAddress, 'VET')
-  const reserveToken = useAddressBalance(exchangeAddress, tokenAddress)
+  let reserveETH = useAddressBalance(exchangeAddress, 'VET')
+  let reserveToken = useAddressBalance(exchangeAddress, tokenAddress)
+
+  if (reserveETH) {
+    reserveETH = ethers.utils.bigNumberify(reserveETH)
+  }
+
+  if (reserveToken) {
+    reserveToken = ethers.utils.bigNumberify(reserveToken)
+  }
 
   return { reserveETH, reserveToken }
 }

@@ -1,8 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import ReactGA from 'react-ga'
-import Web3 from 'web3'
-import Web3Provider from 'web3-react-thor'
+import Web3Provider from 'connex-react'
 import WebFont from 'webfontloader'
 
 import ThemeProvider, { GlobalStyle } from './theme'
@@ -32,12 +31,9 @@ const connectors = { Injected }
 
 WebFont.load({
   google: {
-    families: [
-      'Rubik:900',
-      'Karla'
-    ]
+    families: ['Rubik:900', 'Karla']
   }
-});
+})
 
 function ContextProviders({ children }) {
   return (
@@ -68,7 +64,7 @@ function Updaters() {
 }
 
 ReactDOM.render(
-  <Web3Provider connectors={connectors} libraryName="web3.js" web3Api={Web3}>
+  <Web3Provider connectors={connectors} libraryName="connex">
     <ContextProviders>
       <Updaters />
       <ThemeProvider>

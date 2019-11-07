@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react'
-import { useWeb3Context } from 'web3-react-thor'
+import { useWeb3Context } from 'connex-react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ethers } from 'ethers'
@@ -305,16 +305,19 @@ export default function CurrencyInputPanel({
         return (
           <SubCurrencySelect
             onClick={async () => {
-              const { approve } = tokenContract.methods;
+              const { approve } = tokenContract.methods
               const fn = approve(selectedTokenExchangeAddress, ethers.constants.MaxUint256)
               const gas = await fn.estimateGas({ from: account }).then(gas => ethers.utils.bigNumberify(gas))
 
-              fn.send({
-                from: account,
-                gas: calculateGasMargin(gas, GAS_MARGIN)
-              }, (err, hash) => {
-                addTransaction({ hash }, { approval: selectedTokenAddress })
-              });
+              fn.send(
+                {
+                  from: account,
+                  gas: calculateGasMargin(gas, GAS_MARGIN)
+                },
+                (err, hash) => {
+                  addTransaction({ hash }, { approval: selectedTokenAddress })
+                }
+              )
             }}
           >
             {t('unlock')}

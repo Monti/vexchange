@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { useWeb3Context, Connectors } from 'web3-react-thor'
+import { useWeb3Context, Connectors } from 'connex-react'
 import styled from 'styled-components'
-import { extend } from 'thorify/dist/extend'
 import { useTranslation } from 'react-i18next'
 import { isMobile } from 'react-device-detect'
-import Web3 from 'web3';
 
 import { Spinner } from '../../theme'
 import Circle from '../../assets/images/circle.svg'
@@ -34,7 +32,7 @@ const SpinnerWrapper = styled(Spinner)`
 
 function tryToSetConnector(setConnector, setError) {
   setConnector('Injected', { suppressAndThrowErrors: true }).catch(() => {
-    setConnector('Network', { suppressAndThrowErrors: true }).catch(error => {
+    setConnector('Injected', { suppressAndThrowErrors: true }).catch(error => {
       setError(error)
     })
   })
@@ -48,30 +46,15 @@ export default function Web3ReactManager({ children }) {
 
   useEffect(() => {
     if (!active && !error) {
-      if (window.thor || window.web3) {
+      if (window.connex) {
         if (isMobile) {
           tryToSetConnector(setConnector, setError)
         } else {
-          const web3 = new Web3(window.thor)
-          extend(web3)
-
-          web3.eth.getAccounts().then(accounts => {
-            if (accounts.length >= 1) {
-              tryToSetConnector(setConnector, setError)
-            } else {
-              setConnector('Injected', { suppressAndThrowErrors: true }).catch(error => {
-                setError(error)
-              })
-            }
-          })
+          tryToSetConnector(setConnector, setError)
         }
-      } else {
-        setConnector('Injected', { suppressAndThrowErrors: true }).catch(error => {
-          setError(error)
-        })
       }
     }
-  })
+  }, [active, error, setError, setConnector])
 
   // parse the error
   useEffect(() => {

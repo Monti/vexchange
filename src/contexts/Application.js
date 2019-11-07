@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
-import { useWeb3Context } from 'web3-react-thor'
+import { useWeb3Context } from 'connex-react'
 
 import { safeAccess } from '../utils'
 import { getUSDPrice } from '../utils/price'
@@ -91,7 +91,7 @@ export function Updater() {
             updateUSDPrice(networkId, price)
           }
         })
-        .catch((err) => {
+        .catch(err => {
           if (!stale) {
             updateUSDPrice(networkId, null)
           }
@@ -105,9 +105,10 @@ export function Updater() {
       let stale = false
 
       function update() {
-        library.eth
-          .getBlockNumber()
-          .then(blockNumber => {
+        library.thor
+          .block()
+          .get()
+          .then(({ number: blockNumber }) => {
             if (!stale) {
               updateBlockNumber(networkId, blockNumber)
             }
