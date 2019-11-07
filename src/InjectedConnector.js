@@ -18,31 +18,10 @@ export default class InjectedConnector extends ErrorCodeMixin(Connector, Injecte
   }
 
   async onActivation() {
-    const { thor } = window
+    const { connex } = window
 
-    if (thor) {
-      await thor.enable().catch(error => {
-        const deniedAccessError = Error(error)
-        deniedAccessError.code = InjectedConnector.errorCodes.ETHEREUM_ACCESS_DENIED
-        throw deniedAccessError
-      })
-
-      // initialize event listeners
-      if (thor.on) {
-        thor.on('networkChanged', this.networkChangedHandler)
-        thor.on('accountsChanged', this.accountsChangedHandler)
-
-        this.runOnDeactivation.push(() => {
-          if (thor.removeListener) {
-            thor.removeListener('networkChanged', this.networkChangedHandler)
-            thor.removeListener('accountsChanged', this.accountsChangedHandler)
-          }
-        })
-      }
-    } else {
-      const noWeb3Error = Error('Your browser is not equipped with web3 capabilities.')
-      noWeb3Error.code = InjectedConnector.errorCodes.NO_WEB3
-      throw noWeb3Error
+    if (!connex) {
+      throw Error('no connex')
     }
   }
 
