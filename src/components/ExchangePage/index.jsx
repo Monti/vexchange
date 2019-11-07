@@ -108,7 +108,7 @@ function getSwapType(inputCurrency, outputCurrency) {
 
 // this mocks the getInputPrice function, and calculates the required output
 function calculateEtherTokenOutputFromInput(inputAmount, inputReserve, outputReserve) {
-  const inputAmountWithFee = inputAmount.mul(ethers.utils.bigNumberify(997))
+  const inputAmountWithFee = inputAmount.mul(ethers.utils.bigNumberify(990))
   const numerator = inputAmountWithFee.mul(outputReserve)
   const denominator = inputReserve.mul(ethers.utils.bigNumberify(1000)).add(inputAmountWithFee)
   return numerator.div(denominator)
@@ -117,7 +117,7 @@ function calculateEtherTokenOutputFromInput(inputAmount, inputReserve, outputRes
 // this mocks the getOutputPrice function, and calculates the required input
 function calculateEtherTokenInputFromOutput(outputAmount, inputReserve, outputReserve) {
   const numerator = inputReserve.mul(outputAmount).mul(ethers.utils.bigNumberify(1000))
-  const denominator = outputReserve.sub(outputAmount).mul(ethers.utils.bigNumberify(997))
+  const denominator = outputReserve.sub(outputAmount).mul(ethers.utils.bigNumberify(990))
   return numerator.div(denominator).add(ethers.constants.One)
 }
 
