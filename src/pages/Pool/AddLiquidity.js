@@ -428,11 +428,10 @@ export default function AddLiquidity({ params }) {
       })
       .then(gasUsed => {
         const signingService = window.connex.vendor.sign('tx')
-        gasUsed = ethers.utils.bigNumberify(gasUsed)
 
         signingService
-          .gas(calculateGasMargin(gasUsed, GAS_MARGIN).toString())
-          .request([{ ...clause }])
+          .gas(gasUsed)
+          .request([clause])
           .then(({ txid }) => {
             addTransaction({ hash: txid })
           })

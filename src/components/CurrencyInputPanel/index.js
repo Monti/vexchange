@@ -309,13 +309,25 @@ export default function CurrencyInputPanel({
             onClick={async () => {
               const abi = find(ERC20_ABI, 'approve')
               const method = window.connex.thor.account(selectedTokenAddress).method(abi)
-              const signingService = window.connex.vendor.sign('tx')
+              const explainer = window.connex.thor.explain()
 
               const clause = method.asClause(selectedTokenExchangeAddress, ethers.constants.MaxUint256.toString())
 
-              signingService.request([clause]).then(({ txid }) => {
-                addTransaction({ hash: txid }, { approval: selectedTokenAddress })
-              })
+              explainer
+                .execute([{ ...clause }])
+                .then(outputs => {
+                  return outputs[0].gasUsed
+                })
+                .then(gasUsed => {
+                  const signingService = window.connex.vendor.sign('tx')
+
+                  signingService
+                    .gas(gasUsed)
+                    .request([clause])
+                    .then(({ txid }) => {
+                      addTransaction({ hash: txid }, { approval: selectedTokenAddress })
+                    })
+                })
             }}
           >
             {t('unlock')}
