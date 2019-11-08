@@ -3,15 +3,18 @@ import { withRouter } from 'react-router'
 import { useWeb3Context } from 'connex-react'
 import { createBrowserHistory } from 'history'
 import { ethers } from 'ethers'
+import { find } from '../../utils'
 import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
-import ReactGA from 'react-ga'
 import { Button } from '../../theme'
 import AddressInputPanel from '../../components/AddressInputPanel'
 import OversizedPanel from '../../components/OversizedPanel'
 import { useFactoryContract } from '../../hooks'
 import { useTokenDetails } from '../../contexts/Tokens'
 import { useTransactionAdder } from '../../contexts/Transactions'
+import { FACTORY_ADDRESSES } from '../../constants'
+
+import FACTORY_ABI from '../../constants/abis/factory'
 
 const SummaryPanel = styled.div`
   ${({ theme }) => theme.flexColumnNoWrap};
@@ -56,8 +59,7 @@ const Flex = styled.div`
 
 function CreateExchange({ location, params }) {
   const { t } = useTranslation()
-  const { account } = useWeb3Context()
-  const factory = useFactoryContract()
+  const { account, networkId } = useWeb3Context()
 
   const [tokenAddress, setTokenAddress] = useState({
     address: params.tokenAddress ? params.tokenAddress : '',
@@ -99,24 +101,28 @@ function CreateExchange({ location, params }) {
   }, [tokenAddress.address, symbol, decimals, exchangeAddress, account, t, tokenAddressError])
 
   async function createExchange() {
-    const { createExchange } = factory.methods
+    const abi = find(FACTORY_ABI, 'createExchange')
+    const method = window.connex.thor.account(FACTORY_ADDRESSES[networkId]).method(abi)
+    const explainer = window.connex.thor.explain()
 
-    const fn = createExchange(tokenAddress.address)
-    const gas = await fn.estimateGas({ from: account }).then(gas => ethers.utils.bigNumberify(gas))
+    const clause = method.asClause(tokenAddress.address)
 
-    fn.send(
-      {
-        gas,
-        from: account
-      },
-      (err, hash) => {
-        addTransaction({ hash })
-        ReactGA.event({
-          category: 'Pool',
-          action: 'CreateExchange'
-        })
-      }
-    )
+    explainer
+      .execute([{ ...clause }])
+      .then(outputs => {
+        return outputs[0].gasUsed
+      })
+      .then(gasUsed => {
+        const signingService = window.connex.vendor.sign('tx')
+        gasUsed = ethers.utils.bigNumberify(gasUsed)
+
+        signingService
+          .gas()
+          .request([...clause])
+          .then(({ txid }) => {
+            addTransaction({ hash: txid })
+          })
+      })
   }
 
   const isValid = errorMessage === null

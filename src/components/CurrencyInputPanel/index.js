@@ -13,7 +13,7 @@ import { isMobile } from 'react-device-detect'
 
 import { BorderlessInput } from '../../theme'
 import { useTokenContract } from '../../hooks'
-import { isAddress, calculateGasMargin, formatToUsd, formatTokenBalance, formatEthBalance } from '../../utils'
+import { isAddress, calculateGasMargin, formatToUsd, formatTokenBalance, formatEthBalance, find } from '../../utils'
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
 import Modal from '../Modal'
 import TokenLogo from '../TokenLogo'
@@ -25,6 +25,8 @@ import { transparentize } from 'polished'
 import { Spinner } from '../../theme'
 import Circle from '../../assets/images/circle-grey.svg'
 import { useUSDPrice } from '../../contexts/Application'
+
+import ERC20_ABI from '../../constants/abis/erc20'
 
 const GAS_MARGIN = ethers.utils.bigNumberify(1000)
 
@@ -305,19 +307,15 @@ export default function CurrencyInputPanel({
         return (
           <SubCurrencySelect
             onClick={async () => {
-              const { approve } = tokenContract.methods
-              const fn = approve(selectedTokenExchangeAddress, ethers.constants.MaxUint256)
-              const gas = await fn.estimateGas({ from: account }).then(gas => ethers.utils.bigNumberify(gas))
+              const abi = find(ERC20_ABI, 'approve')
+              const method = window.connex.thor.account(selectedTokenAddress).method(abi)
+              const signingService = window.connex.vendor.sign('tx')
 
-              fn.send(
-                {
-                  from: account,
-                  gas: calculateGasMargin(gas, GAS_MARGIN)
-                },
-                (err, hash) => {
-                  addTransaction({ hash }, { approval: selectedTokenAddress })
-                }
-              )
+              const clause = method.asClause(selectedTokenExchangeAddress, ethers.constants.MaxUint256.toString())
+
+              signingService.request([clause]).then(({ txid }) => {
+                addTransaction({ hash: txid }, { approval: selectedTokenAddress })
+              })
             }}
           >
             {t('unlock')}

@@ -287,10 +287,14 @@ export default function RemoveLiquidity({ params }) {
       })
       .then(gasUsed => {
         const signingService = window.connex.vendor.sign('tx')
+        gasUsed = ethers.utils.bigNumberify(gasUsed)
 
-        signingService.request([{ ...clause }]).then(({ txid }) => {
-          addTransaction({ hash: txid })
-        })
+        signingService
+          .gas(calculateGasMargin(gasUsed, GAS_MARGIN).toString())
+          .request([{ ...clause }])
+          .then(({ txid }) => {
+            addTransaction({ hash: txid })
+          })
       })
   }
 

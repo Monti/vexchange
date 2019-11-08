@@ -164,7 +164,6 @@ export default function Web3Status() {
 
     if (connectorName !== 'Injected') {
       if (connectorName === 'Network' && thor && thor.on && thor.removeListener) {
-        console.log('hit')
         function tryToActivateInjected() {
           // if calling enable won't pop an approve modal, then try to activate injected...
           web3.eth.getAccounts().then(accounts => {
