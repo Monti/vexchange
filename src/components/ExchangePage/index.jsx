@@ -615,21 +615,31 @@ export default function ExchangePage({ initialCurrency, sending = false, params 
       }
     }
 
-    const signingService = window.connex.vendor.sign('tx')
+    const explainer = window.connex.thor.explain()
     const method = window.connex.thor.account(exchangeAddress).method(abi)
 
     method.value(value.toString())
 
     const clause = method.asClause(...args)
 
-    signingService
-      .request([
-        {
-          ...clause
-        }
-      ])
-      .then(({ txid }) => {
-        addTransaction({ hash: txid })
+    explainer
+      .execute([{ ...clause }])
+      .then(outputs => {
+        return outputs[0].gasUsed
+      })
+      .then(gasUsed => {
+        const signingService = window.connex.vendor.sign('tx')
+
+        signingService
+          .gas(gasUsed)
+          .request([
+            {
+              ...clause
+            }
+          ])
+          .then(({ txid }) => {
+            addTransaction({ hash: txid })
+          })
       })
   }
 

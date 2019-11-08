@@ -410,7 +410,7 @@ export default function AddLiquidity({ params }) {
 
     const abi = find(EXCHANGE_ABI, 'addLiquidity')
 
-    const signingService = window.connex.vendor.sign('tx')
+    const explainer = window.connex.thor.explain()
     const method = window.connex.thor.account(exchangeAddress).method(abi)
 
     method.value(inputValueParsed.toString())
@@ -421,9 +421,18 @@ export default function AddLiquidity({ params }) {
       deadline
     )
 
-    signingService.request([{ ...clause }]).then(({ txid }) => {
-      addTransaction({ hash: txid })
-    })
+    explainer
+      .execute([{ ...clause }])
+      .then(outputs => {
+        return outputs[0].gasUsed
+      })
+      .then(gasUsed => {
+        const signingService = window.connex.vendor.sign('tx')
+
+        signingService.request([{ ...clause }]).then(({ txid }) => {
+          addTransaction({ hash: txid })
+        })
+      })
   }
 
   function formatBalance(value) {
