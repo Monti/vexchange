@@ -18,17 +18,9 @@ export default class InjectedConnector extends ErrorCodeMixin(Connector, Injecte
   }
 
   async onActivation() {
-    const { connex, thor } = window
+    const { connex } = window
 
-    if (connex) {
-      if (thor) {
-        await thor.enable().catch(error => {
-          const deniedAccessError = Error(error)
-          deniedAccessError.code = InjectedConnector.errorCodes.ETHEREUM_ACCESS_DENIED
-          throw deniedAccessError
-        })
-      }
-    } else {
+    if (!connex) {
       throw Error('no connex')
     }
   }
