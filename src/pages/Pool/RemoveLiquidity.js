@@ -273,28 +273,16 @@ export default function RemoveLiquidity({ params }) {
     })
 
     const deadline = Math.ceil(Date.now() / 1000) + DEADLINE_FROM_NOW
-    const explainer = window.connex.thor.explain()
+    const signingService = window.connex.vendor.sign('tx')
 
     const abi = find(EXCHANGE_ABI, 'removeLiquidity')
     const method = library.thor.account(exchangeAddress).method(abi)
 
     const clause = method.asClause(valueParsed, ethWithdrawnMin, tokenWithdrawnMin, deadline)
 
-    explainer
-      .execute([{ ...clause }])
-      .then(outputs => {
-        return outputs[0].gasUsed
-      })
-      .then(gasUsed => {
-        const signingService = window.connex.vendor.sign('tx')
-
-        signingService
-          .gas(gasUsed)
-          .request([clause])
-          .then(({ txid }) => {
-            addTransaction({ hash: txid })
-          })
-      })
+    signingService.request([clause]).then(({ txid }) => {
+      addTransaction({ hash: txid })
+    })
   }
 
   const b = text => <BlueSpan>{text}</BlueSpan>

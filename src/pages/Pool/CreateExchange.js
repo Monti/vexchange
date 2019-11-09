@@ -103,25 +103,13 @@ function CreateExchange({ location, params }) {
   async function createExchange() {
     const abi = find(FACTORY_ABI, 'createExchange')
     const method = window.connex.thor.account(FACTORY_ADDRESSES[networkId]).method(abi)
-    const explainer = window.connex.thor.explain()
+    const signingService = window.connex.vendor.sign('tx')
 
     const clause = method.asClause(tokenAddress.address)
 
-    explainer
-      .execute([{ ...clause }])
-      .then(outputs => {
-        return outputs[0].gasUsed
-      })
-      .then(gasUsed => {
-        const signingService = window.connex.vendor.sign('tx')
-
-        signingService
-          .gas(gasUsed)
-          .request([clause])
-          .then(({ txid }) => {
-            addTransaction({ hash: txid })
-          })
-      })
+    signingService.request([clause]).then(({ txid }) => {
+      addTransaction({ hash: txid })
+    })
   }
 
   const isValid = errorMessage === null
