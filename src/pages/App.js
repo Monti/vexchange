@@ -54,20 +54,12 @@ const WidgetFooter = styled.div`
   }
 `
 
-const Unlock = styled.div`
-  margin: 1.25rem;
-`
-
 export default function App() {
   const params = getAllQueryParams()
   const [locked, setLocked] = useState(true)
 
   if (params.widget && locked) {
-    return (
-      <Unlock>
-        <Button onClick={() => setLocked(false)}>Unlock Vexchange</Button>
-      </Unlock>
-    )
+    return <Button onClick={() => setLocked(false)}>Unlock Vexchange</Button>
   }
 
   return (
