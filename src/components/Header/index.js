@@ -18,6 +18,7 @@ const HeaderElement = styled.div`
   min-width: 0;
   display: flex;
   align-items: center;
+  width: 100%;
 `
 
 const Title = styled.div`
@@ -37,8 +38,8 @@ const Title = styled.div`
     font-size: 1rem;
     font-family: 'Rubik', sans-serif;
     font-weight: 600;
-		letter-spacing: 1px;
-		text-transform: uppercase;
+    letter-spacing: 1px;
+    text-transform: uppercase;
     color: ${({ theme }) => theme.vexchangeGreen};
     :hover {
       color: ${({ theme }) => darken(0.1, theme.vexchangeGreen)};
@@ -46,18 +47,21 @@ const Title = styled.div`
   }
 `
 
-export default function Header() {
+export default function Header({ params }) {
+  const { widget = false } = params
   return (
     <HeaderFrame>
+      {!widget && (
+        <HeaderElement>
+          <Title>
+            <Link id="link" href="https://vexchange.io">
+              <h1 id="title">Vexchange</h1>
+            </Link>
+          </Title>
+        </HeaderElement>
+      )}
       <HeaderElement>
-        <Title>
-          <Link id="link" href="https://vexchange.io">
-            <h1 id="title">Vexchange</h1>
-          </Link>
-        </Title>
-      </HeaderElement>
-      <HeaderElement>
-        <Web3Status />
+        <Web3Status widget={widget} />
       </HeaderElement>
     </HeaderFrame>
   )

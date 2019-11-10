@@ -28,7 +28,7 @@ export function safeAccess(object, path) {
 
 const VEFORGE_PREFIXES = {
   74: 'explore.',
-  39: 'testnet.',
+  39: 'testnet.'
 }
 
 export function getEtherscanLink(networkId, data, type) {
@@ -92,6 +92,8 @@ export function getAllQueryParams() {
     ? getQueryParam(window.location, 'tokenAddress')
     : ''
 
+  params.widget = getQueryParam(window.location, 'widget')
+
   return params
 }
 
@@ -151,7 +153,7 @@ export function getContract(address, ABI, library, account) {
     throw Error(`Invalid 'address' parameter '${address}'.`)
   }
 
-  return new library.eth.Contract(ABI, address);
+  return new library.eth.Contract(ABI, address)
 }
 
 // account is optional
@@ -173,7 +175,8 @@ export async function getTokenName(tokenAddress, library) {
   let symbolAbi = find(ERC20_ABI, 'name')
   let method = library.thor.account(tokenAddress).method(symbolAbi)
 
-  return method.call()
+  return method
+    .call()
     .then(({ decoded }) => {
       return decoded[0]
     })
@@ -194,7 +197,8 @@ export async function getTokenSymbol(tokenAddress, library) {
   let symbolAbi = find(ERC20_ABI, 'symbol')
   let method = library.thor.account(tokenAddress).method(symbolAbi)
 
-  return method.call()
+  return method
+    .call()
     .then(({ decoded }) => {
       return decoded[0]
     })
@@ -219,7 +223,8 @@ export async function getTokenDecimals(tokenAddress, library) {
   const abi = find(ERC20_ABI, 'decimals')
   const method = library.thor.account(tokenAddress).method(abi)
 
-  return method.call()
+  return method
+    .call()
     .then(({ decoded }) => {
       return decoded[0]
     })
@@ -235,13 +240,11 @@ export async function getTokenDecimals(tokenAddress, library) {
 
 // get the exchange address for a token from the factory
 export async function getTokenExchangeAddressFromFactory(tokenAddress, networkId, library) {
-
   const abi = find(FACTORY_ABI, 'getExchange')
   const method = library.thor.account(FACTORY_ADDRESSES[networkId]).method(abi)
-  return method.call()
-    .then(({ decoded }) => {
-      return decoded[0]
-    })
+  return method.call().then(({ decoded }) => {
+    return decoded[0]
+  })
 }
 
 // get the ether balance of an address
@@ -286,7 +289,9 @@ export async function getTokenBalance(tokenAddress, address, library) {
 
   const abi = find(ERC20_ABI, 'balanceOf')
   const method = library.thor.account(tokenAddress).method(abi)
-  let { decoded: { balance } } = await method.call(address)
+  let {
+    decoded: { balance }
+  } = await method.call(address)
   balance = ethers.utils.bigNumberify(balance)
   return balance
 }

@@ -47,6 +47,12 @@ const Body = styled.div`
   /* margin: 0 1.25rem 1.25rem 1.25rem; */
 `
 
+const WidgetFooter = styled.div`
+  a {
+    color: #58a8a6;
+  }
+`
+
 export default function App() {
   const params = getAllQueryParams()
   return (
@@ -54,13 +60,13 @@ export default function App() {
       <Suspense fallback={null}>
         <AppWrapper>
           <HeaderWrapper>
-            <Header />
+            <Header params={params} />
           </HeaderWrapper>
           <BodyWrapper>
             <Body>
               <Web3ReactManager>
                 <BrowserRouter>
-                  <NavigationTabs />
+                  <NavigationTabs params={params} />
                   {/* this Suspense is for route code-splitting */}
                   <Suspense fallback={null}>
                     <Switch>
@@ -111,10 +117,22 @@ export default function App() {
                 </BrowserRouter>
               </Web3ReactManager>
             </Body>
+            {params.widget && (
+              <WidgetFooter>
+                <small>
+                  Powered by{' '}
+                  <a href="http://vexchange.io/" target="_blank" rel="noopener noreferrer">
+                    Vexchange
+                  </a>
+                </small>
+              </WidgetFooter>
+            )}
           </BodyWrapper>
-          <FooterWrapper>
-            <Footer />
-          </FooterWrapper>
+          {!params.widget && (
+            <FooterWrapper>
+              <Footer />
+            </FooterWrapper>
+          )}
         </AppWrapper>
       </Suspense>
     </>

@@ -129,7 +129,7 @@ function walletModalReducer(state, { type, payload }) {
   }
 }
 
-export default function Web3Status() {
+export default function Web3Status({ widget = false }) {
   const { t } = useTranslation()
   const { active, account, connectorName, setConnector } = useWeb3Context()
 
@@ -258,7 +258,7 @@ export default function Web3Status() {
       return (
         <Web3StatusConnected onClick={onClick} pending={hasPendingTransactions}>
           {hasPendingTransactions && <SpinnerWrapper src={Circle} alt="loader" />}
-          <Text>{ENSName || shortenAddress(account)}</Text>
+          {!widget ? <Text>{ENSName || shortenAddress(account)}</Text> : <Text>{shortenAddress(account, 8)}</Text>}
           <Identicon ref={ref} />
         </Web3StatusConnected>
       )

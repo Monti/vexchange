@@ -103,8 +103,9 @@ const StyledNavLink = styled(NavLink).attrs({
   }
 `
 
-function NavigationTabs({ location: { pathname }, history }) {
+function NavigationTabs({ location: { pathname }, history, params }) {
   const { t } = useTranslation()
+  const { widget = false } = params
 
   const [showBetaMessage, dismissBetaMessage] = useBetaMessageManager()
 
@@ -134,7 +135,7 @@ function NavigationTabs({ location: { pathname }, history }) {
           </StyledNavLink>
         ))}
       </Tabs>
-      {showBetaMessage && (
+      {showBetaMessage && !widget && (
         <BetaMessage onClick={dismissBetaMessage}>
           <span role="img" aria-label="warning">
             💀
