@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useState } from 'react'
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom'
 
 import Web3ReactManager from '../components/Web3ReactManager'
@@ -45,7 +45,12 @@ const BodyWrapper = styled.div`
 const Body = styled.div`
   max-width: 35rem;
   width: 90%;
-  /* margin: 0 1.25rem 1.25rem 1.25rem; */
+
+  ${({ widget }) =>
+    widget &&
+    css`
+      width: 100%;
+    `}
 `
 
 const WidgetFooter = styled.div`
@@ -70,7 +75,7 @@ export default function App() {
             <Header params={params} />
           </HeaderWrapper>
           <BodyWrapper>
-            <Body>
+            <Body widget={params.widget}>
               <Web3ReactManager>
                 <BrowserRouter>
                   <NavigationTabs params={params} />

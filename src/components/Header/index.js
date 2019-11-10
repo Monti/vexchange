@@ -1,5 +1,5 @@
 import React from 'react'
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 
 import { Link } from '../../theme'
 import Web3Status from '../Web3Status'
@@ -18,7 +18,13 @@ const HeaderElement = styled.div`
   min-width: 0;
   display: flex;
   align-items: center;
-  width: 100%;
+
+  ${({ widget }) =>
+    widget &&
+    css`
+      margin: 0 0 1.25rem 0;
+      width: 100%;
+    `}
 `
 
 const Title = styled.div`
@@ -60,7 +66,7 @@ export default function Header({ params }) {
           </Title>
         </HeaderElement>
       )}
-      <HeaderElement>
+      <HeaderElement widget={widget}>
         <Web3Status widget={widget} />
       </HeaderElement>
     </HeaderFrame>
