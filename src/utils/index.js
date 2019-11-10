@@ -95,6 +95,7 @@ export function getAllQueryParams() {
   params.widget = getQueryParam(window.location, 'widget')
   params.primary = getQueryParam(window.location, 'primary')
   params.disableNav = getQueryParam(window.location, 'disableNav') || false
+  params.disableDetails = getQueryParam(window.location, 'disableDetails') || false
 
   return params
 }

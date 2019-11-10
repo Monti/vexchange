@@ -724,34 +724,37 @@ export default function ExchangePage({ initialCurrency, sending = false, params 
           )}
         </ExchangeRateWrapper>
       </OversizedPanel>
-      <TransactionDetails
-        account={account}
-        setRawSlippage={setRawSlippage}
-        setRawTokenSlippage={setRawTokenSlippage}
-        rawSlippage={rawSlippage}
-        slippageWarning={slippageWarning}
-        highSlippageWarning={highSlippageWarning}
-        inputError={inputError}
-        independentError={independentError}
-        inputCurrency={inputCurrency}
-        outputCurrency={outputCurrency}
-        independentValue={independentValue}
-        independentValueParsed={independentValueParsed}
-        independentField={independentField}
-        INPUT={INPUT}
-        inputValueParsed={inputValueParsed}
-        outputValueParsed={outputValueParsed}
-        inputSymbol={inputSymbol}
-        outputSymbol={outputSymbol}
-        dependentValueMinumum={dependentValueMinumum}
-        dependentValueMaximum={dependentValueMaximum}
-        dependentDecimals={dependentDecimals}
-        independentDecimals={independentDecimals}
-        percentSlippageFormatted={percentSlippageFormatted}
-        setcustomSlippageError={setcustomSlippageError}
-        recipientAddress={recipient.address}
-        sending={sending}
-      />
+
+      {!params.disableDetails && (
+        <TransactionDetails
+          account={account}
+          setRawSlippage={setRawSlippage}
+          setRawTokenSlippage={setRawTokenSlippage}
+          rawSlippage={rawSlippage}
+          slippageWarning={slippageWarning}
+          highSlippageWarning={highSlippageWarning}
+          inputError={inputError}
+          independentError={independentError}
+          inputCurrency={inputCurrency}
+          outputCurrency={outputCurrency}
+          independentValue={independentValue}
+          independentValueParsed={independentValueParsed}
+          independentField={independentField}
+          INPUT={INPUT}
+          inputValueParsed={inputValueParsed}
+          outputValueParsed={outputValueParsed}
+          inputSymbol={inputSymbol}
+          outputSymbol={outputSymbol}
+          dependentValueMinumum={dependentValueMinumum}
+          dependentValueMaximum={dependentValueMaximum}
+          dependentDecimals={dependentDecimals}
+          independentDecimals={independentDecimals}
+          percentSlippageFormatted={percentSlippageFormatted}
+          setcustomSlippageError={setcustomSlippageError}
+          recipientAddress={recipient.address}
+          sending={sending}
+        />
+      )}
       <Flex>
         <Button
           disabled={!isValid || customSlippageError === 'invalid'}
