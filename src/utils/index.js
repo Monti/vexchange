@@ -93,6 +93,7 @@ export function getAllQueryParams() {
     : ''
 
   params.widget = getQueryParam(window.location, 'widget')
+  params.primary = getQueryParam(window.location, 'primary')
 
   return params
 }

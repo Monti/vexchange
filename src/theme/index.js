@@ -37,6 +37,8 @@ const black = '#000000'
 export default function ThemeProvider({ children }) {
   const [darkMode, toggleDarkMode] = useDarkModeManager()
   const themeURL = checkSupportedTheme(getQueryParam(window.location, 'theme'))
+  const primary = getQueryParam(window.location, 'primary')
+
   const themeToRender = themeURL
     ? themeURL.toUpperCase() === SUPPORTED_THEMES.DARK
       ? true
@@ -47,10 +49,10 @@ export default function ThemeProvider({ children }) {
   useEffect(() => {
     toggleDarkMode(themeToRender)
   }, [toggleDarkMode, themeToRender])
-  return <StyledComponentsThemeProvider theme={theme(themeToRender)}>{children}</StyledComponentsThemeProvider>
+  return <StyledComponentsThemeProvider theme={theme(themeToRender, primary)}>{children}</StyledComponentsThemeProvider>
 }
 
-const theme = darkMode => ({
+const theme = (darkMode, primary) => ({
   white,
   black,
   textColor: darkMode ? white : '#010101',
@@ -77,10 +79,10 @@ const theme = darkMode => ({
   // blues
   zumthorBlue: darkMode ? '#212529' : '#ffffff',
   malibuBlue: darkMode ? '#E67AEF' : '#58a8a6',
-  royalBlue: darkMode ? '#58a8a6' : '#58a8a6',
+  royalBlue: primary ? `#${primary}` : '#58a8a6',
   loadingBlue: darkMode ? '#e4f0ff' : '#58a8a6',
 
-  vexchangeGreen: '#58a8a6',
+  vexchangeGreen: primary ? `#${primary}` : '#58a8a6',
 
   // purples
   wisteriaPurple: '#58a8a6',
@@ -91,7 +93,8 @@ const theme = darkMode => ({
   // yellows
   warningYellow: '#FFE270',
   // pink
-  uniswapPink: '#58a8a6',
+
+  //uniswapPink: '#58a8a6',
   connectedGreen: '#27AE60',
 
   //specific
