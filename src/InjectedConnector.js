@@ -18,18 +18,15 @@ export default class InjectedConnector extends ErrorCodeMixin(Connector, Injecte
   }
 
   async onActivation() {
-    const { connex } = window
-
-    if (!connex) {
-      const noWeb3Error = Error('Your browser is not equipped with connex capabilities.')
+    if (!window.connex) {
+      const noWeb3Error = Error('Your browser is not equipped with Connex capabilities.')
       noWeb3Error.code = InjectedConnector.errorCodes.NO_WEB3
       throw noWeb3Error
     }
   }
 
   async getProvider() {
-    const { connex } = window
-    return connex
+    return window.connex
   }
 
   async getAccount(provider) {

@@ -64,7 +64,7 @@ export default function App() {
   const [locked, setLocked] = useState(true)
 
   if (params.widget && locked) {
-    return <Button onClick={() => setLocked(false)}>Unlock Vexchange</Button>
+    return <Button onClick={() => setLocked(false)}>Enable Vexchange</Button>
   }
 
   return (
