@@ -21,7 +21,9 @@ export default class InjectedConnector extends ErrorCodeMixin(Connector, Injecte
     const { connex } = window
 
     if (!connex) {
-      throw Error('no connex')
+      const noWeb3Error = Error('Your browser is not equipped with connex capabilities.')
+      noWeb3Error.code = InjectedConnector.errorCodes.NO_WEB3
+      throw noWeb3Error
     }
   }
 

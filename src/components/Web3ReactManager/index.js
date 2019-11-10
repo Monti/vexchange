@@ -47,11 +47,11 @@ export default function Web3ReactManager({ children }) {
   useEffect(() => {
     if (!active && !error) {
       if (window.connex) {
-        if (isMobile) {
-          tryToSetConnector(setConnector, setError)
-        } else {
-          tryToSetConnector(setConnector, setError)
-        }
+        tryToSetConnector(setConnector, setError)
+      } else {
+        setConnector('Injected', { suppressAndThrowErrors: true }).catch(error => {
+          setError(error)
+        })
       }
     }
   }, [active, error, setError, setConnector])
@@ -83,7 +83,7 @@ export default function Web3ReactManager({ children }) {
   } else if (error) {
     return (
       <MessageWrapper>
-        <Message>{t('unknownError')}</Message>
+        <Message>{error.message}</Message>
       </MessageWrapper>
     )
   } else if (!active) {
