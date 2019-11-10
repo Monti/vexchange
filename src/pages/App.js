@@ -1,10 +1,11 @@
-import React, { Suspense, lazy } from 'react'
+import React, { Suspense, lazy, useState } from 'react'
 import styled from 'styled-components'
 import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom'
 
 import Web3ReactManager from '../components/Web3ReactManager'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import { Button } from '../theme'
 
 import NavigationTabs from '../components/NavigationTabs'
 import { isAddress, getAllQueryParams } from '../utils'
@@ -53,8 +54,22 @@ const WidgetFooter = styled.div`
   }
 `
 
+const Unlock = styled.div`
+  margin: 1.25rem;
+`
+
 export default function App() {
   const params = getAllQueryParams()
+  const [locked, setLocked] = useState(true)
+
+  if (params.widget && locked) {
+    return (
+      <Unlock>
+        <Button onClick={() => setLocked(false)}>Unlock Vexchange</Button>
+      </Unlock>
+    )
+  }
+
   return (
     <>
       <Suspense fallback={null}>
