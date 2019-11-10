@@ -78,7 +78,7 @@ export default function App() {
             <Body widget={params.widget}>
               <Web3ReactManager>
                 <BrowserRouter>
-                  <NavigationTabs params={params} />
+                  {!params.disableNav && <NavigationTabs params={params} />}
                   {/* this Suspense is for route code-splitting */}
                   <Suspense fallback={null}>
                     <Switch>

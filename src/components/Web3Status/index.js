@@ -258,7 +258,7 @@ export default function Web3Status({ widget = false }) {
       return (
         <Web3StatusConnected onClick={onClick} pending={hasPendingTransactions}>
           {hasPendingTransactions && <SpinnerWrapper src={Circle} alt="loader" />}
-          {!widget ? <Text>{ENSName || shortenAddress(account)}</Text> : <Text>{shortenAddress(account, 8)}</Text>}
+          {!widget ? <Text>{ENSName || shortenAddress(account)}</Text> : <Text>{shortenAddress(account, 16)}</Text>}
           <Identicon ref={ref} />
         </Web3StatusConnected>
       )
