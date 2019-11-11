@@ -61,11 +61,11 @@ const WidgetFooter = styled.div`
 
 export default function App() {
   const params = getAllQueryParams()
-  const [locked, setLocked] = useState(true)
+  //const [locked, setLocked] = useState(true)
 
-  if (params.widget && locked) {
-    return <Button onClick={() => setLocked(false)}>Enable Vexchange</Button>
-  }
+  //if (params.widget && locked) {
+  //  return <Button onClick={() => setLocked(false)}>Enable Vexchange</Button>
+  //}
 
   return (
     <>
