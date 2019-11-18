@@ -62,12 +62,13 @@ const ExchangeRateWrapper = styled.div`
   color: ${({ theme }) => theme.doveGray};
   font-size: 0.75rem;
   padding: 0.5rem 1rem;
+  cursor: pointer;
 `
 
 const ExchangeRate = styled.span`
   flex: 1 1 auto;
   width: 0;
-  color: ${({ theme }) => theme.doveGray};
+  color: ${({ theme }) => theme.royalBlue};
 `
 
 const Flex = styled.div`
@@ -708,7 +709,10 @@ export default function ExchangePage({ initialCurrency, sending = false, params 
             setInverted(inverted => !inverted)
           }}
         >
-          <ExchangeRate>{t('exchangeRate')}</ExchangeRate>
+          <ExchangeRate>
+            {t('exchangeRate')}
+            {inverted && ' (inverted)'}
+          </ExchangeRate>
           {inverted ? (
             <span>
               {exchangeRate
