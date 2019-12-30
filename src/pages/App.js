@@ -64,7 +64,16 @@ export default function App() {
   const [locked, setLocked] = useState(true)
 
   if (params.widget && locked) {
-    return <Button onClick={() => setLocked(false)}>Enable Vexchange</Button>
+    return (
+      <>
+        <p>
+          Vexchange is a fully decentralized on-chain protocol for token exchange on VeChain that uses liquidity pools
+          instead of order books. Anyone can quickly swap between VET and any VIP180 token or earn fees by supplying any
+          amount of liquidity. To Swap unlock Vexchange.
+        </p>
+        <Button onClick={() => setLocked(false)}>Enable Vexchange</Button>
+      </>
+    )
   }
 
   return (
