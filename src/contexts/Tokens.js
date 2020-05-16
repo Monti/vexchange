@@ -47,6 +47,12 @@ const INITIAL_TOKENS_CONTEXT = {
       [DECIMALS]: 18,
       [EXCHANGE_ADDRESS]: '0x18C2385481cDf28779aC271272398dD61cc8CF3E'
     },
+    '0xacc280010b2ee0efc770bce34774376656d8ce14': {
+      [NAME]: 'HackenAI',
+      [SYMBOL]: 'HAI',
+      [DECIMALS]: 8,
+      [EXCHANGE_ADDRESS]: '0x6A662F91E14312a11a2E35b359427AEf798fD928'
+    },
     '0x5db3C8A942333f6468176a870dB36eEf120a34DC': {
       [NAME]: 'Safe Haven',
       [SYMBOL]: 'SHA',
@@ -82,7 +88,7 @@ const INITIAL_TOKENS_CONTEXT = {
       [SYMBOL]: 'JUR',
       [DECIMALS]: 18,
       [EXCHANGE_ADDRESS]: '0xfECA5a0C2ffD0C894b986f93B492B572236a347a'
-    },
+    }
   },
   39: {
     '0x0000000000000000000000000000456e65726779': {
@@ -160,7 +166,7 @@ export function useTokenDetails(tokenAddress) {
     ) {
       let stale = false
 
-      const namePromise = getTokenName(tokenAddress, library).catch((error) => console.log(error))
+      const namePromise = getTokenName(tokenAddress, library).catch(error => console.log(error))
       const symbolPromise = getTokenSymbol(tokenAddress, library).catch(() => null)
       const decimalsPromise = getTokenDecimals(tokenAddress, library).catch(() => null)
       const exchangeAddressPromise = getTokenExchangeAddressFromFactory(tokenAddress, networkId, library).catch(
