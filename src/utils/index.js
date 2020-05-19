@@ -28,11 +28,11 @@ export function safeAccess(object, path) {
 
 const VEFORGE_PREFIXES = {
   74: 'explore.',
-  39: 'testnet.',
+  39: 'explore-testnet.',
 }
 
 export function getEtherscanLink(networkId, data, type) {
-  const prefix = `https://${VEFORGE_PREFIXES[networkId] || VEFORGE_PREFIXES[1]}veforge.com`
+  const prefix = `https://${VEFORGE_PREFIXES[networkId] || VEFORGE_PREFIXES[1]}.vechain.org`
 
   switch (type) {
     case 'transaction': {
