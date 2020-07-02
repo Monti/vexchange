@@ -1,5 +1,7 @@
 import React, { Suspense, lazy, useEffect } from 'react'
 import ReactGA from 'react-ga'
+import Web3ReactManager from '../../components/Web3ReactManager'
+import NavigationTabs from '../../components/NavigationTabs'
 import { Switch, Route, Redirect } from 'react-router-dom'
 import ModeSelector from './ModeSelector'
 
@@ -19,7 +21,8 @@ export default function Pool({ params }) {
   const CreateExchangeParams = () => <CreateExchange params={params} />
 
   return (
-    <>
+    <Web3ReactManager>
+      <NavigationTabs />
       <ModeSelector />
       {/* this Suspense is for route code-splitting */}
       <Suspense fallback={null}>
@@ -38,6 +41,6 @@ export default function Pool({ params }) {
           <Redirect to="/add-liquidity" />
         </Switch>
       </Suspense>
-    </>
+    </Web3ReactManager>
   )
 }

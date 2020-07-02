@@ -6,6 +6,7 @@ import { darken, transparentize } from 'polished'
 import { picasso } from '@vechain/picasso'
 import { Activity } from 'react-feather'
 import { extend } from 'thorify/dist/extend'
+import { useRouteMatch } from 'react-router-dom'
 import Web3 from 'web3'
 
 import { shortenAddress } from '../../utils'
@@ -13,6 +14,7 @@ import { useENSName } from '../../hooks'
 import WalletModal from '../WalletModal'
 import { useAllTransactions } from '../../contexts/Transactions'
 import { Spinner } from '../../theme'
+import { StyledNavLink } from '../NavigationTabs'
 import Circle from '../../assets/images/circle.svg'
 
 const { Connector } = Connectors
@@ -130,6 +132,7 @@ function walletModalReducer(state, { type, payload }) {
 }
 
 export default function Web3Status() {
+  const { isExact } = useRouteMatch('/')
   const { t } = useTranslation()
   const { active, account, connectorName, setConnector } = useWeb3Context()
 
@@ -229,11 +232,11 @@ export default function Web3Status() {
     if (ref.current) {
       ref.current.innerHTML = ''
       if (account) {
-        const div = document.createElement("div")
+        const div = document.createElement('div')
         const svg = picasso(account)
         div.style.background = `no-repeat url('data:image/svg+xml;utf8,${svg}')`
-        div.style.height = '16px' 
-				div.style.width = '16px'
+        div.style.height = '16px'
+        div.style.width = '16px'
 
         ref.current.appendChild(div)
       }
@@ -264,6 +267,10 @@ export default function Web3Status() {
         </Web3StatusConnected>
       )
     }
+  }
+
+  if (isExact) {
+    return <StyledNavLink to="/swap">View Exchange</StyledNavLink>
   }
 
   return (

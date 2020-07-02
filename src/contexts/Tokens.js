@@ -190,8 +190,12 @@ export function useTokenDetails(tokenAddress) {
   return { name, symbol, decimals, exchangeAddress }
 }
 
-export function useAllTokenDetails(requireExchange = true) {
-  const { networkId } = useWeb3Context()
+export function useAllTokenDetails(requireExchange = true, networkId) {
+  let context = useWeb3Context()
+
+  if (!networkId) {
+    networkId = context.networkId
+  }
 
   const [state] = useTokensContext()
   const tokenDetails = { ...VET, ...(safeAccess(state, [networkId]) || {}) }

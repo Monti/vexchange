@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import { extend } from 'thorify/dist/extend'
 import { useTranslation } from 'react-i18next'
 import { isMobile } from 'react-device-detect'
-import Web3 from 'web3';
+import Web3 from 'web3'
 
 import { Spinner } from '../../theme'
 import Circle from '../../assets/images/circle.svg'

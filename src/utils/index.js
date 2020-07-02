@@ -1,4 +1,7 @@
+import React from 'react'
+import { Text } from 'rebass'
 import { ethers } from 'ethers'
+import axios from 'axios'
 
 import FACTORY_ABI from '../constants/abis/factory'
 import EXCHANGE_ABI from '../constants/abis/exchange'
@@ -8,6 +11,71 @@ import { FACTORY_ADDRESSES, SUPPORTED_THEMES } from '../constants'
 import { formatFixed } from '@uniswap/sdk'
 
 import UncheckedJsonRpcSigner from './signer'
+//
+// using a currency library here in case we want to add more in future
+let priceFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 2
+})
+
+export function formattedPercent(percent) {
+  if (!percent || percent === 0) {
+    return (
+      <Text fontWeight={500} fontSize={'1rem'}>
+        0%
+      </Text>
+    )
+  }
+
+  if (percent < 0.0001 && percent > 0) {
+    return (
+      <Text fontWeight={500} fontSize={'1rem'} color="green">
+        {'< 0.0001%'}
+      </Text>
+    )
+  }
+
+  if (percent < 0 && percent > -0.0001) {
+    return (
+      <Text fontWeight={500} fontSize={'1rem'} color="red">
+        {'< 0.0001%'}
+      </Text>
+    )
+  }
+
+  let fixedPercent = percent.toFixed(2)
+  if (fixedPercent === '0.00') {
+    return '0%'
+  }
+  if (fixedPercent > 0) {
+    if (fixedPercent > 100) {
+      return <Text fontWeight={500} color="green">{`+${percent?.toFixed(0).toLocaleString()}%`}</Text>
+    } else {
+      return <Text fontWeight={500} color="green">{`+${fixedPercent}%`}</Text>
+    }
+  } else {
+    return <Text fontWeight={500} color="red">{`${fixedPercent}%`}</Text>
+  }
+}
+
+export const toK = (num, fixed, cutoff = false) => {
+  const formatter = divideBy =>
+    fixed === true
+      ? cutoff
+        ? Number(num / divideBy).toFixed(0)
+        : Number(num / divideBy).toFixed(2)
+      : Number(num / divideBy)
+  if (num > 999999999 || num < -9999999) {
+    return `${formatter(1000000000)}M`
+  } else if (num > 999999 || num < -999999) {
+    return `${formatter(1000000)}M`
+  } else if (num > 999 || num < -999) {
+    return `${formatter(1000)}K`
+  } else {
+    return formatter(1)
+  }
+}
 
 export const ERROR_CODES = ['TOKEN_NAME', 'TOKEN_SYMBOL', 'TOKEN_DECIMALS'].reduce(
   (accumulator, currentValue, currentIndex) => {
@@ -28,7 +96,7 @@ export function safeAccess(object, path) {
 
 const VEFORGE_PREFIXES = {
   74: 'explore.',
-  39: 'explore-testnet.',
+  39: 'explore-testnet.'
 }
 
 export function getEtherscanLink(networkId, data, type) {
@@ -44,6 +112,48 @@ export function getEtherscanLink(networkId, data, type) {
     }
   }
 }
+
+export const formattedNum = (number, usd = false) => {
+  if (isNaN(number) || number === '' || number === undefined) {
+    return usd ? '$0' : 0
+  }
+  let num = parseFloat(number)
+
+  if (num > 500000000) {
+    return (usd ? '$' : '') + toK(num.toFixed(0), true)
+  }
+
+  if (num === 0) {
+    if (usd) {
+      return '$0'
+    }
+    return 0
+  }
+  if (num < 0.0001) {
+    return usd ? '< $0.0001' : '< 0.0001'
+  }
+
+  if (num > 1000) {
+    return usd
+      ? '$' + Number(parseFloat(num).toFixed(0)).toLocaleString()
+      : '' + Number(parseFloat(num).toFixed(0)).toLocaleString()
+  }
+
+  if (usd) {
+    if (num < 0.1) {
+      return '$' + Number(parseFloat(num).toFixed(4))
+    } else {
+      let usdString = priceFormatter.format(num)
+      return '$' + usdString.slice(1, usdString.length)
+    }
+  }
+
+  return Number(parseFloat(num).toFixed(4))
+}
+
+export const request = axios.create({
+  baseURL: 'http://66.42.84.6:3000/api'
+})
 
 export function getQueryParam(windowLocation, name) {
   var q = windowLocation.search.match(new RegExp('[?&]' + name + '=([^&#?]*)'))
@@ -151,7 +261,7 @@ export function getContract(address, ABI, library, account) {
     throw Error(`Invalid 'address' parameter '${address}'.`)
   }
 
-  return new library.eth.Contract(ABI, address);
+  return new library.eth.Contract(ABI, address)
 }
 
 // account is optional
@@ -170,12 +280,12 @@ export async function getTokenName(tokenAddress, library) {
     throw Error(`Invalid 'tokenAddress' parameter '${tokenAddress}'.`)
   }
 
-  return getContract(tokenAddress, ERC20_ABI, library).methods
-    .name()
+  return getContract(tokenAddress, ERC20_ABI, library)
+    .methods.name()
     .call()
     .catch(() =>
-      getContract(tokenAddress, ERC20_BYTES32_ABI, library).methods
-        .name()
+      getContract(tokenAddress, ERC20_BYTES32_ABI, library)
+        .methods.name()
         .call()
         .then(bytes32 => ethers.utils.parseBytes32String(bytes32))
     )
@@ -191,12 +301,15 @@ export async function getTokenSymbol(tokenAddress, library) {
     throw Error(`Invalid 'tokenAddress' parameter '${tokenAddress}'.`)
   }
 
-  return getContract(tokenAddress, ERC20_ABI, library).methods
-    .symbol()
+  return getContract(tokenAddress, ERC20_ABI, library)
+    .methods.symbol()
     .call()
     .catch(() => {
       const contractBytes32 = getContract(tokenAddress, ERC20_BYTES32_ABI, library)
-      return contractBytes32.methods.symbol().call().then(bytes32 => ethers.utils.parseBytes32String(bytes32))
+      return contractBytes32.methods
+        .symbol()
+        .call()
+        .then(bytes32 => ethers.utils.parseBytes32String(bytes32))
     })
     .catch(error => {
       error.code = ERROR_CODES.TOKEN_SYMBOL
@@ -210,8 +323,8 @@ export async function getTokenDecimals(tokenAddress, library) {
     throw Error(`Invalid 'tokenAddress' parameter '${tokenAddress}'.`)
   }
 
-  return getContract(tokenAddress, ERC20_ABI, library).methods
-    .decimals()
+  return getContract(tokenAddress, ERC20_ABI, library)
+    .methods.decimals()
     .call()
     .catch(error => {
       error.code = ERROR_CODES.TOKEN_DECIMALS
@@ -221,7 +334,9 @@ export async function getTokenDecimals(tokenAddress, library) {
 
 // get the exchange address for a token from the factory
 export async function getTokenExchangeAddressFromFactory(tokenAddress, networkId, library) {
-  return getFactoryContract(networkId, library).methods.getExchange(tokenAddress).call()
+  return getFactoryContract(networkId, library)
+    .methods.getExchange(tokenAddress)
+    .call()
 }
 
 // get the ether balance of an address
@@ -260,8 +375,8 @@ export async function getTokenBalance(tokenAddress, address, library) {
     throw Error(`Invalid 'tokenAddress' or 'address' parameter '${tokenAddress}' or '${address}'.`)
   }
 
-  const contract = getContract(tokenAddress, ERC20_ABI, library);
-  let balance = await contract.methods.balanceOf(address).call();
+  const contract = getContract(tokenAddress, ERC20_ABI, library)
+  let balance = await contract.methods.balanceOf(address).call()
   balance = ethers.utils.bigNumberify(balance)
   return balance
 }
@@ -275,8 +390,8 @@ export async function getTokenAllowance(address, tokenAddress, spenderAddress, l
     )
   }
 
-  const contract = getContract(tokenAddress, ERC20_ABI, library);
-  let allowance = await contract.methods.allowance(address, spenderAddress).call();
+  const contract = getContract(tokenAddress, ERC20_ABI, library)
+  let allowance = await contract.methods.allowance(address, spenderAddress).call()
 
   return allowance
 }
