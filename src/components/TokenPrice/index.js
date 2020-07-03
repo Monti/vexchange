@@ -16,13 +16,13 @@ export default function TokenPrice({ token, change }) {
       request
         .get(`current/${token.address}`)
         .then(({ data }) => {
-          setPrice(data.sell.token)
-          return data.sell.token
+          setPrice(data.buy.token)
+          return data.buy.token
         })
         .then(currentPrice => {
           if (change) {
             request.get(`previous/${token.address}`).then(({ data }) => {
-              let previousPrice = data.sell.token
+              let previousPrice = data.buy.token
               let percentage = 0
 
               if (currentPrice > previousPrice) {
@@ -34,6 +34,9 @@ export default function TokenPrice({ token, change }) {
               }
             })
           }
+        })
+        .catch(error => {
+          console.log(error)
         })
     }
 

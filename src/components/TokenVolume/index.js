@@ -9,9 +9,14 @@ export default function TokenVolume({ token }) {
   useEffect(() => {
     function getVolume() {
       const symbol = token.symbol.toLowerCase()
-      request.get(`volume/${symbol}`).then(({ data }) => {
-        setVolume(data.totalVolume)
-      })
+      request
+        .get(`volume/${symbol}`)
+        .then(({ data }) => {
+          setVolume(data.totalVolume)
+        })
+        .catch(error => {
+          console.log(error)
+        })
     }
 
     getVolume()

@@ -21,10 +21,15 @@ export default function TokenLiquidity({ token }) {
   useEffect(() => {
     function getLiquidity() {
       const symbol = token.symbol.toLowerCase()
-      request.get(`liquidity/${symbol}`).then(({ data }) => {
-        setBalance(data.balance)
-        setTokenBalance(data.tokenBalance)
-      })
+      request
+        .get(`liquidity/${symbol}`)
+        .then(({ data }) => {
+          setBalance(data.balance)
+          setTokenBalance(data.tokenBalance)
+        })
+        .catch(error => {
+          console.log(error)
+        })
     }
 
     getLiquidity()
