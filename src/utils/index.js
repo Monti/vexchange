@@ -152,7 +152,7 @@ export const formattedNum = (number, usd = false) => {
 }
 
 export const request = axios.create({
-  baseURL: 'https://66.42.84.6:3000/api'
+  baseURL: '//66.42.84.6:3000/api'
 })
 
 export function getQueryParam(windowLocation, name) {
