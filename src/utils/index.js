@@ -152,7 +152,7 @@ export const formattedNum = (number, usd = false) => {
 }
 
 export const request = axios.create({
-  baseURL: '//66.42.84.6:3000/api'
+  baseURL: 'https://vexchange-api.com/api'
 })
 
 export function getQueryParam(windowLocation, name) {
