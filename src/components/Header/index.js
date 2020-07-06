@@ -51,7 +51,7 @@ export default function Header() {
     <HeaderFrame>
       <HeaderElement>
         <Title>
-          <Link id="link" href="https://vexchange.io">
+          <Link id="link" href="/">
             <h1 id="title">Vexchange</h1>
           </Link>
         </Title>
