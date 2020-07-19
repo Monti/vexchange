@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react'
 import { Box } from 'rebass';
 import styled from 'styled-components';
 
+import { request, formattedNum } from '../../utils'
+
 const HeroStyled = styled.div`
-  margin-bottom: 10px;
   text-align: center;
 `;
 
@@ -18,6 +19,22 @@ const Tagline = styled.h3`
 `;
 
 export default function Hero() {
+  const [volume, setVolume] = useState(0)
+
+  useEffect(() => {
+    function getVolume() {
+      request
+        .get(`current/totalVolume`)
+        .then(({ data }) => {
+          setVolume(data.totalVolume)
+        })
+        .catch(error => {
+          console.log(error)
+        })
+    }
+
+    getVolume()
+  })
   return (
     <HeroStyled>
       <Box
@@ -33,6 +50,9 @@ export default function Hero() {
         <Tagline>
           Decentralized. Simple. Secure.
         </Tagline>
+        <small>
+          Total Volume (24hrs): {formattedNum(volume)} VET
+        </small>
       </Box>
     </HeroStyled>
   );

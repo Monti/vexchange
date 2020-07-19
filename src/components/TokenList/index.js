@@ -127,9 +127,10 @@ export default function Home({ params }) {
         px: 3
       }}
     >
-      <Panel style={{ marginTop: '6px' }}>
+      <Panel>
         <Hero />
       </Panel>
+
       <Container>
         <Panel style={{ marginTop: '6px' }}>
           <DashGrid center={true} style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
