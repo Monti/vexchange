@@ -77,17 +77,14 @@ export default function Footer() {
     <FooterFrame>
       <FooterElement>
         <Title>
-          <Link id="link" href="https://vechain101.com/2019/01/27/introducing-vexchange-exchange/">
+          <Link id="link" target="_blank" href="https://vechain101.com/2019/01/27/introducing-vexchange-exchange/">
             <h1 id="title">About</h1>
           </Link>
-          <Link id="link" href="https://github.com/Monti/Vexchange">
+          <Link id="link" target="_blank" href="https://github.com/Monti/Vexchange">
             <h1 id="title">Code</h1>
           </Link>
           <Link id="link" href="https://arkane.vexchange.io">
             <h1 id="title">Arkane</h1>
-          </Link>
-          <Link id="link" href="https://stats.vexchange.io">
-            <h1 id="title">Stats</h1>
           </Link>
         </Title>
       </FooterElement>
