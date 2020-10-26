@@ -98,6 +98,9 @@ const Container = styled.div`
   :focus-within {
     border: 1px solid ${({ theme }) => theme.vexchangeGreen};
   }
+
+  overflow-y: auto;
+  height: 70vh;
 `
 
 const TokenLogoWrapper = styled.div`
