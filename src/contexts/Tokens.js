@@ -94,6 +94,12 @@ const INITIAL_TOKENS_CONTEXT = {
       [SYMBOL]: 'SNK',
       [DECIMALS]: 18,
       [EXCHANGE_ADDRESS]: '0x6A662F91E14312a11a2E35b359427AEf798fD928'
+    },
+    '0x535Ab4a9fCE43dc71e9540534733bbeB0f494d5c': {
+      [NAME]: 'Burn',
+      [SYMBOL]: 'BURN',
+      [DECIMALS]: 0,
+      [EXCHANGE_ADDRESS]: '0x5c0c19c1a8ea85ce1e8f54b0fce90fd32e487484'
     }
   },
   39: {
