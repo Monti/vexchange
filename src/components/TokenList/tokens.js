@@ -96,9 +96,9 @@ export default [
   {
     key: 'burn',
     [NAME]: 'Burn',
-    [SYMBOL]: 'BURN',
+    [SYMBOL]: 'VBURN',
     [DECIMALS]: 0,
-    [ADDRESS]: '0x535Ab4a9fCE43dc71e9540534733bbeB0f494d5c',
-    [EXCHANGE_ADDRESS]: '0x5c0c19c1a8ea85ce1e8f54b0fce90fd32e487484'
+    [ADDRESS]: '0x868838Ed3809A658321DfEBfF03F46Fd2E3FF42A',
+    [EXCHANGE_ADDRESS]: '0x6d967756cf34533ec123c07f8f8f4ae37d4fa266'
   }
 ]
