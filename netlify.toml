@@ -3,3 +3,8 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+[[redirects]]
+  from = "/v2"
+  to = "https://confident-engelbart-deba5c.netlify.app/"
+  status = 200
