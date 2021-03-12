@@ -1,12 +1,12 @@
-[[redirects]]
-  from = "/v2"
-  to = "https://confident-engelbart-deba5c.netlify.app/swap"
-  status = 200
-  force = true
-  headers = {X-From = "Netlify"}
-  
 # support SPA setup
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+[[redirects]]
+  from = "/v2"
+  to = "https://confident-engelbart-deba5c.netlify.app/index.html"
+  status = 200
+  force = true
+  
