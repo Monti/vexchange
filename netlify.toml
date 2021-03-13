@@ -1,7 +1,6 @@
 [[redirects]]
-  from = "/v2/*"
+  from = "/v2"
   to = "https://confident-engelbart-deba5c.netlify.app/:splat"
-  status = 200
   force = true
   
 # support SPA setup
