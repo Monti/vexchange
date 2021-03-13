@@ -1,29 +1,5 @@
-# block some countries
-[[redirects]]
-  from = "/*"
-  to = "/451.html"
-  status = 451
-  force = true
-  conditions = {Country=["BY","CU","IR","IQ","CI","LR","KP","SD","SY","ZW"]}
-  headers = {Link="<https://uniswap.exchange>"}
-
-# forward v2 subdomain to apex
-[[redirects]]
-  from = "https://v2.uniswap.exchange/*"
-  to = "https://uniswap.exchange/:splat"
-  status = 301
-
 # support SPA setup
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-[build.environment]
-  REACT_APP_NETWORK_URL = "https://mainnet.infura.io/v3/b8800ce81b8c451698081d269b86692b"
-
-[context.production.environment]
-  REACT_APP_CHAIN_ID = "1"
-  REACT_APP_NETWORK_URL = "https://mainnet.infura.io/v3/2acb2baa4c06402792e0c701a3697d10"
-  REACT_APP_FORTMATIC_KEY = "pk_live_F937DF033A1666BF"
-  REACT_APP_PORTIS_ID = "c0e2bf01-4b08-4fd5-ac7b-8e26b58cd236"
