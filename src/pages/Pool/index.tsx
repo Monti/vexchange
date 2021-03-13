@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react'
 import styled, { ThemeContext } from 'styled-components'
-import { JSBI, Pair } from '@uniswap/sdk'
+import { JSBI, Pair } from 'vexchange-sdk'
 import { RouteComponentProps, withRouter } from 'react-router-dom'
 
 import Question from '../../components/Question'

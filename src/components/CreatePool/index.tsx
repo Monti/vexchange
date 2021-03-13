@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { withRouter, RouteComponentProps } from 'react-router-dom'
-import { Token, VVET } from '@uniswap/sdk'
+import { Token, VVET } from 'vexchange-sdk'
 
 import Row, { AutoRow } from '../Row'
 import TokenLogo from '../TokenLogo'

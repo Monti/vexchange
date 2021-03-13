@@ -1,4 +1,4 @@
-import { JSBI, TokenAmount, VVET } from '@uniswap/sdk'
+import { JSBI, TokenAmount, VVET } from 'vexchange-sdk'
 import React, { useContext, useState } from 'react'
 import { ArrowDown, Repeat } from 'react-feather'
 import ReactGA from 'react-ga'

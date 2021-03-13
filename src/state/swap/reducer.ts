@@ -1,6 +1,6 @@
 import { parse } from 'qs'
 import { createReducer } from '@reduxjs/toolkit'
-import { VVET } from '@uniswap/sdk'
+import { VVET } from 'vexchange-sdk'
 import { isAddress } from '../../utils'
 import { Field, selectToken, setDefaultsFromURL, switchTokens, typeInput } from './actions'
 

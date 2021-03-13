@@ -1,4 +1,4 @@
-import { ChainId, JSBI, Pair, Token, TokenAmount, VVET } from '@uniswap/sdk'
+import { ChainId, JSBI, Pair, Token, TokenAmount, VVET } from 'vexchange-sdk'
 import { useWeb3React } from '../../hooks'
 import { useCallback, useMemo } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'

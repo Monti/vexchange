@@ -1,4 +1,4 @@
-import { Token } from '@uniswap/sdk'
+import { Token } from 'vexchange-sdk'
 import React, { useState } from 'react'
 import styled, { keyframes } from 'styled-components'
 

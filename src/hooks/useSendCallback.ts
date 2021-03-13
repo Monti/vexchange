@@ -1,5 +1,5 @@
 import { BigNumber } from '@ethersproject/bignumber'
-import { VVET, TokenAmount, JSBI } from '@uniswap/sdk'
+import { VVET, TokenAmount, JSBI } from 'vexchange-sdk'
 import { useMemo } from 'react'
 import { find } from 'lodash'
 import { useTransactionAdder } from '../state/transactions/hooks'

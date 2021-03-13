@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { VVET, Token, TokenAmount, Trade, ChainId, Pair } from '@uniswap/sdk'
+import { VVET, Token, TokenAmount, Trade, ChainId, Pair } from 'vexchange-sdk'
 import { useWeb3React } from './index'
 import { usePair } from '../data/Reserves'
 

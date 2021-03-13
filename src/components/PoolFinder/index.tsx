@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { RouteComponentProps, withRouter } from 'react-router-dom'
-import { TokenAmount, JSBI, Token, Pair } from '@uniswap/sdk'
+import { TokenAmount, JSBI, Token, Pair } from 'vexchange-sdk'
 import { useTokenBalanceTreatingWETHasETH } from '../../state/wallet/hooks'
 
 import Row from '../Row'

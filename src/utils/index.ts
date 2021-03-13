@@ -10,7 +10,7 @@ import { abi as IUniswapV2Router02ABI } from '../constants/abis/IUniswapV2Router
 import { ROUTER_ADDRESS } from '../constants'
 
 import ERC20_ABI from '../constants/abis/erc20.json'
-import { ChainId, JSBI, Percent, TokenAmount } from '@uniswap/sdk'
+import { ChainId, JSBI, Percent, TokenAmount } from 'vexchange-sdk'
 
 // returns the checksummed address if the address is valid, otherwise returns false
 export function isAddress(value: any): string | false {

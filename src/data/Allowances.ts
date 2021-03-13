@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Token, TokenAmount } from '@uniswap/sdk'
+import { Token, TokenAmount } from 'vexchange-sdk'
 import { find } from 'lodash'
 
 import ERC20_ABI from '../constants/abis/erc20.json'

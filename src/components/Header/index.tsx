@@ -11,7 +11,7 @@ import Web3Status from '../Web3Status'
 
 import { Link } from '../../theme'
 import { Text } from 'rebass'
-import { VVET, ChainId } from '@uniswap/sdk'
+import { VVET, ChainId } from 'vexchange-sdk'
 import { isMobile } from 'react-device-detect'
 import { YellowCard } from '../Card'
 import { useWeb3React } from '../../hooks'

@@ -1,4 +1,4 @@
-import { ChainId, WETH } from '@uniswap/sdk'
+import { ChainId, WETH } from 'vexchange-sdk'
 import { createStore } from 'redux'
 import { Field, setDefaultsFromURL } from './actions'
 import reducer from './reducer'

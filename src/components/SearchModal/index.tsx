@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo, useEffect, useContext } from 'react'
 import '@reach/tooltip/styles.css'
 import styled, { ThemeContext } from 'styled-components'
-import { JSBI, Token, VVET } from '@uniswap/sdk'
+import { JSBI, Token, VVET } from 'vexchange-sdk'
 import { isMobile } from 'react-device-detect'
 import { RouteComponentProps, withRouter } from 'react-router-dom'
 import { COMMON_BASES } from '../../constants'

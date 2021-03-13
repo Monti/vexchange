@@ -1,4 +1,4 @@
-import { Trade, TradeType } from '@uniswap/sdk'
+import { Trade, TradeType } from 'vexchange-sdk'
 import React, { useContext } from 'react'
 import { ChevronUp } from 'react-feather'
 import { Text } from 'rebass'

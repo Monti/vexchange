@@ -1,7 +1,7 @@
 {
   "version": "v1",
   "packages": {
-    "@uniswap/sdk": {
+    "vexchange-sdk": {
       "signature": "cdc795d2c2f114c5c3fd3bcabf121cd5",
       "file": true,
       "replaced": "^2.0.5"

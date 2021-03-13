@@ -1,4 +1,4 @@
-import { Percent } from '@uniswap/sdk'
+import { Percent } from 'vexchange-sdk'
 import React, { useContext } from 'react'
 import { ChevronDown } from 'react-feather'
 import { Text } from 'rebass'

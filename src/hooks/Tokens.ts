@@ -1,4 +1,4 @@
-import { Token, VVET } from '@uniswap/sdk'
+import { Token, VVET } from 'vexchange-sdk'
 import { useEffect, useMemo } from 'react'
 import { useAddUserToken, useFetchTokenByAddress, useUserAddedTokens } from '../state/user/hooks'
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import styled from 'styled-components'
 import { isAddress } from '../../utils'
 import { useWeb3React } from '../../hooks'
-import { VVET } from '@uniswap/sdk'
+import { VVET } from 'vexchange-sdk'
 
 import { ReactComponent as VeChainLogo } from '../../assets/images/vet-logo.svg'
 

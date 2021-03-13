@@ -1,5 +1,5 @@
 import { parseUnits } from '@ethersproject/units'
-import { JSBI, Percent, Route, Token, TokenAmount, VVET } from '@uniswap/sdk'
+import { JSBI, Percent, Route, Token, TokenAmount, VVET } from 'vexchange-sdk'
 import React, { useCallback, useContext, useEffect, useReducer, useState } from 'react'
 import { ArrowDown, Plus } from 'react-feather'
 import ReactGA from 'react-ga'
