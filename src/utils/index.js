@@ -100,7 +100,7 @@ const VEFORGE_PREFIXES = {
 }
 
 export function getEtherscanLink(networkId, data, type) {
-  const prefix = `https://${VEFORGE_PREFIXES[networkId] || VEFORGE_PREFIXES[1]}.vechain.org`
+  const prefix = `https://${VEFORGE_PREFIXES[networkId] || VEFORGE_PREFIXES[1]}vechain.org`
 
   switch (type) {
     case 'transaction': {
