@@ -6,7 +6,6 @@ import { DataText } from '../TokenList'
 
 export default function TokenPrice({ token, change }) {
   const below1080 = useMedia('(max-width: 1080px)')
-  const below680 = useMedia('(max-width: 680px)')
 
   const [price, setPrice] = useState(0)
   const [percentage, setPercentage] = useState(0)
